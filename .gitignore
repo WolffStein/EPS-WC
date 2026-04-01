@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environment
+.venv/
+
+# Tooling caches
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+
+# Coverage and reports
+.coverage
+coverage.xml
+htmlcov/
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+
+# Local extracted artifacts
+desafio1/desafio1_extraido.txt

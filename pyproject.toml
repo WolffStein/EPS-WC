@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "eps-wc"
+version = "0.1.0"
+description = "Desafio 01 - onboarding SecOps e soberania tecnica"
+authors = ["EPS Student <student@example.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.2.7"
+pydantic = "^2.12.0"
+
+[tool.poetry.group.dev.dependencies]
+bandit = "^1.8.6"
+ruff = "^0.13.2"
+safety = "^3.6.2"
+
+[tool.bandit]
+exclude_dirs = [".venv", ".git", ".github"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
