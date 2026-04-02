@@ -28,7 +28,7 @@ poetry install
 poetry env info
 poetry run bandit -r .
 poetry run ruff check .
-poetry run safety check
+poetry run safety scan
 ```
 
 ## CI de seguranca

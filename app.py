@@ -1,15 +1,13 @@
-"""
-Aplicação base para o desafio de onboarding SecOps.
-Módulo de inicialização com configurações seguras.
-"""
+"""Aplicação base para o desafio de onboarding SecOps."""
 
-import os
 import sys
 
-def main():
+
+def main() -> int:
     """Função principal de inicialização."""
     print("EPS-WC: Aplicação iniciada com sucesso")
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
