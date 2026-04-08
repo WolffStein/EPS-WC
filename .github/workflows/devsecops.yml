@@ -29,7 +29,7 @@ jobs:
         run: poetry run ruff check .
 
       - name: Bandit
-        run: poetry run bandit -r . -x .venv,.git,.github,.ruff_cache
+        run: poetry run bandit -r . --exclude ./.venv,./.git,./.github,./.ruff_cache
 
       - name: Safety
         run: poetry run safety check

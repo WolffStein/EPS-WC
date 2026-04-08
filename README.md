@@ -26,7 +26,7 @@ poetry install
 
 ```bash
 poetry env info
-poetry run bandit -r .
+poetry run bandit -r . --exclude ./.venv,./.git,./.github,./.ruff_cache
 poetry run ruff check .
 poetry run safety scan
 ```
