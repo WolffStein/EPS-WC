@@ -1,0 +1,13 @@
+.git
+.github
+.ruff_cache
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+db.sqlite3
+htmlcov
+.coverage
+PDFS e Slides
+desafio1

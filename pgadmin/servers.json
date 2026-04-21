@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "EPS PostgreSQL",
+      "Group": "Projeto EPS",
+      "Host": "db",
+      "Port": 5432,
+      "MaintenanceDB": "postgres",
+      "Username": "eps_user",
+      "SSLMode": "prefer",
+      "Shared": true
+    }
+  }
+}

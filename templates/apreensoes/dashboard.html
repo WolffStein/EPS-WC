@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Operações | EPS{% endblock %}
+
+{% block content %}
+<section class="hero-card">
+    <div>
+        <p class="eyebrow">Inventário mobile-first para diligências</p>
+        <h1>Operações</h1>
+        <p class="lead">
+            Cadastre a operação, monte a equipe, registre os itens apreendidos e gere o PDF final
+            para subir no sistema oficial.
+        </p>
+    </div>
+    <a class="button button-primary" href="{% url 'apreensoes:operation_create' %}">Nova operação</a>
+</section>
+
+<section class="stats-grid">
+    <article class="stat-card">
+        <span>Planejadas</span>
+        <strong>{{ stats.planejadas }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Em andamento</span>
+        <strong>{{ stats.em_andamento }}</strong>
+    </article>
+    <article class="stat-card">
+        <span>Encerradas</span>
+        <strong>{{ stats.encerradas }}</strong>
+    </article>
+</section>
+
+<section class="panel">
+    <div class="panel-heading">
+        <h2>Lista de operações</h2>
+        <p>Abra uma operação para lançar equipe, categorias e itens apreendidos.</p>
+    </div>
+
+    {% if operations %}
+        <div class="card-grid">
+            {% for operation in operations %}
+                <article class="operation-card">
+                    <div class="operation-card-header">
+                        <div>
+                            <p class="eyebrow">{{ operation.codigo }}</p>
+                            <h3>{{ operation.nome }}</h3>
+                        </div>
+                        <span class="pill pill-{{ operation.status }}">{{ operation.get_status_display }}</span>
+                    </div>
+                    <dl class="info-list">
+                        <div>
+                            <dt>Departamento</dt>
+                            <dd>{{ operation.departamento }}</dd>
+                        </div>
+                        <div>
+                            <dt>Responsável</dt>
+                            <dd>{{ operation.responsavel }}</dd>
+                        </div>
+                        <div>
+                            <dt>Data</dt>
+                            <dd>{{ operation.data_operacao|date:"d/m/Y" }}</dd>
+                        </div>
+                        <div>
+                            <dt>Suspeito</dt>
+                            <dd>{{ operation.suspeito_nome }}</dd>
+                        </div>
+                    </dl>
+                    <div class="meta-row">
+                        <span>{{ operation.total_integrantes }} integrante(s)</span>
+                        <span>{{ operation.total_itens }} item(ns)</span>
+                    </div>
+                    <a class="button button-secondary" href="{% url 'apreensoes:operation_detail' operation.pk %}">
+                        Abrir operação
+                    </a>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h3>Nenhuma operação cadastrada</h3>
+            <p>Comece criando a primeira operação para estruturar o inventário da apreensão.</p>
+            <a class="button button-primary" href="{% url 'apreensoes:operation_create' %}">Criar agora</a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

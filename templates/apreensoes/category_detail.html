@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.nome }} | EPS{% endblock %}
+
+{% block content %}
+<section class="detail-hero">
+    <div>
+        <p class="eyebrow">Categoria configurável</p>
+        <h1>{{ category.nome }}</h1>
+        <p class="lead">{{ category.descricao|default:"Sem descrição cadastrada." }}</p>
+    </div>
+    <div class="hero-actions">
+        {% if category.is_default %}
+            <span class="pill pill-neutral">Categoria padrão</span>
+        {% endif %}
+        <a class="button button-primary" href="{% url 'apreensoes:category_field_create' category.pk %}">Adicionar campo</a>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-heading">
+        <h2>Campos desta categoria</h2>
+    </div>
+
+    {% if category.field_definitions.all %}
+        <div class="list-stack">
+            {% for field in category.field_definitions.all %}
+                <div class="list-card">
+                    <div>
+                        <strong>{{ field.label }}</strong>
+                        <p>{{ field.get_field_type_display }} • chave `{{ field.key }}`</p>
+                        {% if field.help_text %}
+                            <p>{{ field.help_text }}</p>
+                        {% endif %}
+                    </div>
+                    <span class="pill pill-neutral">{% if field.required %}Obrigatório{% else %}Opcional{% endif %}</span>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state compact">
+            <h3>Nenhum campo configurado</h3>
+            <p>Adicione os atributos que esse tipo de item deve coletar durante a apreensão.</p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

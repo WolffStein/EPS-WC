@@ -1,0 +1,61 @@
+services:
+  web:
+    build:
+      context: .
+    container_name: eps-web
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    environment:
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-true}
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-127.0.0.1,localhost,testserver,web}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:-docker-dev-secret-key}
+      DB_ENGINE: postgres
+      POSTGRES_DB: ${POSTGRES_DB:-eps_db}
+      POSTGRES_USER: ${POSTGRES_USER:-eps_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-eps_password}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: eps-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-eps_db}
+      POSTGRES_USER: ${POSTGRES_USER:-eps_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-eps_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-eps_user} -d ${POSTGRES_DB:-eps_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: eps-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-admin@eps.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD:-admin123}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: "False"
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./pgadmin/servers.json:/pgadmin4/servers.json:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  pgadmin_data:

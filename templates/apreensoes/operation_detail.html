@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}{{ operation.codigo }} | EPS{% endblock %}
+
+{% block content %}
+<section class="detail-hero">
+    <div>
+        <p class="eyebrow">{{ operation.codigo }}</p>
+        <h1>{{ operation.nome }}</h1>
+        <p class="lead">{{ operation.departamento }} • {{ operation.data_operacao|date:"d/m/Y" }}</p>
+    </div>
+    <div class="hero-actions">
+        <span class="pill pill-{{ operation.status }}">{{ operation.get_status_display }}</span>
+        <a class="button button-secondary" href="{% url 'apreensoes:operation_update' operation.pk %}">Editar</a>
+        <a class="button button-primary" href="{% url 'apreensoes:operation_pdf' operation.pk %}">Baixar PDF</a>
+    </div>
+</section>
+
+<section class="split-grid">
+    <article class="panel">
+        <div class="panel-heading">
+            <h2>Resumo da operação</h2>
+        </div>
+        <dl class="info-list compact">
+            <div>
+                <dt>Chefe responsável</dt>
+                <dd>{{ operation.responsavel }}</dd>
+            </div>
+            <div>
+                <dt>Local</dt>
+                <dd>{{ operation.local_apreensao }}</dd>
+            </div>
+            <div>
+                <dt>Cidade / UF</dt>
+                <dd>{{ operation.cidade_uf|default:"-" }}</dd>
+            </div>
+            <div>
+                <dt>Suspeito</dt>
+                <dd>{{ operation.suspeito_nome }}</dd>
+            </div>
+            <div>
+                <dt>Documento</dt>
+                <dd>{{ operation.suspeito_documento|default:"-" }}</dd>
+            </div>
+            <div>
+                <dt>Endereço do suspeito</dt>
+                <dd>{{ operation.suspeito_endereco|default:"-" }}</dd>
+            </div>
+        </dl>
+
+        <div class="action-row">
+            {% if operation.status == "planejada" %}
+                <form method="post" action="{% url 'apreensoes:operation_start' operation.pk %}">
+                    {% csrf_token %}
+                    <button class="button button-secondary" type="submit">Iniciar apreensão</button>
+                </form>
+            {% endif %}
+
+            {% if operation.status != "encerrada" %}
+                <form method="post" action="{% url 'apreensoes:operation_close' operation.pk %}">
+                    {% csrf_token %}
+                    <button class="button button-danger" type="submit">Encerrar operação</button>
+                </form>
+            {% endif %}
+        </div>
+
+        {% if operation.observacoes %}
+            <div class="note-block">
+                <strong>Observações</strong>
+                <p>{{ operation.observacoes }}</p>
+            </div>
+        {% endif %}
+    </article>
+
+    <article class="panel">
+        <div class="panel-heading">
+            <h2>Equipe</h2>
+            {% if operation.status != "encerrada" %}
+                <a class="button button-secondary" href="{% url 'apreensoes:team_member_create' operation.pk %}">Adicionar integrante</a>
+            {% endif %}
+        </div>
+
+        {% if operation.team_members.all %}
+            <div class="list-stack">
+                {% for member in operation.team_members.all %}
+                    <div class="list-card">
+                        <div>
+                            <strong>{{ member.nome }}</strong>
+                            <p>{{ member.cargo }} • {{ member.matricula|default:"sem matrícula" }}</p>
+                            <p>{{ member.contato|default:"sem contato" }}</p>
+                        </div>
+                        {% if operation.status != "encerrada" %}
+                            <form method="post" action="{% url 'apreensoes:team_member_delete' member.pk %}">
+                                {% csrf_token %}
+                                <button class="button button-ghost button-small" type="submit">Remover</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-inline">Nenhum integrante cadastrado ainda.</div>
+        {% endif %}
+    </article>
+</section>
+
+<section class="panel">
+    <div class="panel-heading">
+        <h2>Categorias disponíveis</h2>
+        <a class="button button-secondary" href="{% url 'apreensoes:category_list' %}">Gerenciar categorias</a>
+    </div>
+    <div class="category-chip-grid">
+        {% for category in categories %}
+            <article class="category-chip-card">
+                <div>
+                    <strong>{{ category.nome }}</strong>
+                    <p>{{ category.descricao|default:"Sem descrição cadastrada." }}</p>
+                </div>
+                <div class="meta-row">
+                    <span>{{ category.field_definitions.count }} campo(s)</span>
+                    {% if operation.status != "encerrada" %}
+                        <a class="button button-ghost button-small" href="{% url 'apreensoes:item_create' operation.pk %}?category={{ category.pk }}">
+                            Lançar item
+                        </a>
+                    {% endif %}
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-heading">
+        <h2>Itens apreendidos</h2>
+        {% if operation.status != "encerrada" %}
+            <a class="button button-primary" href="{% url 'apreensoes:item_create' operation.pk %}">Registrar item</a>
+        {% endif %}
+    </div>
+
+    {% if operation.items.all %}
+        <div class="list-stack">
+            {% for item in operation.items.all %}
+                <article class="item-card">
+                    <div class="item-card-header">
+                        <div>
+                            <p class="eyebrow">{{ item.category.nome }}</p>
+                            <h3>{{ item.titulo }}</h3>
+                        </div>
+                        <span class="pill pill-neutral">Qtd. {{ item.quantidade }}</span>
+                    </div>
+                    <p class="item-meta">
+                        {{ item.local_encontrado|default:"Local não informado" }}
+                        {% if item.estado %}• {{ item.estado }}{% endif %}
+                    </p>
+                    {% if item.descricao %}
+                        <p>{{ item.descricao }}</p>
+                    {% endif %}
+
+                    {% if item.extra_field_items %}
+                        <dl class="detail-list">
+                            {% for field in item.extra_field_items %}
+                                <div>
+                                    <dt>{{ field.label }}</dt>
+                                    <dd>{{ field.value }}</dd>
+                                </div>
+                            {% endfor %}
+                        </dl>
+                    {% endif %}
+
+                    {% if operation.status != "encerrada" %}
+                        <div class="action-row">
+                            <a class="button button-secondary button-small" href="{% url 'apreensoes:item_update' item.pk %}">Editar</a>
+                            <form method="post" action="{% url 'apreensoes:item_delete' item.pk %}">
+                                {% csrf_token %}
+                                <button class="button button-ghost button-small" type="submit">Remover</button>
+                            </form>
+                        </div>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state compact">
+            <h3>Nenhum item registrado</h3>
+            <p>Quando a diligência começar, os itens apreendidos aparecem aqui e entram no PDF final.</p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

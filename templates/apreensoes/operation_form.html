@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} | EPS{% endblock %}
+
+{% block content %}
+<section class="panel panel-form">
+    <div class="panel-heading">
+        <p class="eyebrow">Planejamento da diligência</p>
+        <h1>{{ page_title }}</h1>
+        <p>Cadastre os dados iniciais da operação, o local da diligência e o suspeito alvo.</p>
+    </div>
+
+    <form method="post" class="form-grid">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-field {% if field.name == 'observacoes' %}form-field-full{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <small>{{ field.help_text }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                    <small class="error-text">{{ error }}</small>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <div class="form-actions">
+            <a class="button button-ghost" href="{% url 'apreensoes:dashboard' %}">Cancelar</a>
+            <button class="button button-primary" type="submit">Salvar operação</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

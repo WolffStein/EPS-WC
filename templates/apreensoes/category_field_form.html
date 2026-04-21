@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Novo campo | EPS{% endblock %}
+
+{% block content %}
+<section class="panel panel-form">
+    <div class="panel-heading">
+        <p class="eyebrow">Categoria: {{ category.nome }}</p>
+        <h1>Novo campo</h1>
+        <p>Configure como esse atributo aparece no formulário de cadastro do item apreendido.</p>
+    </div>
+
+    <form method="post" class="form-grid">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}
+                    <small class="error-text">{{ error }}</small>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <div class="form-actions">
+            <a class="button button-ghost" href="{% url 'apreensoes:category_detail' category.pk %}">Cancelar</a>
+            <button class="button button-primary" type="submit">Salvar campo</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Equipe | EPS{% endblock %}
+
+{% block content %}
+<section class="panel panel-form">
+    <div class="panel-heading">
+        <p class="eyebrow">{{ operation.codigo }}</p>
+        <h1>Novo integrante da equipe</h1>
+        <p>Cadastre a composição da operação para registrar quem participou da apreensão.</p>
+    </div>
+
+    <form method="post" class="form-grid">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-field {% if field.name == 'observacoes' %}form-field-full{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}
+                    <small class="error-text">{{ error }}</small>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <div class="form-actions">
+            <a class="button button-ghost" href="{% url 'apreensoes:operation_detail' operation.pk %}">Cancelar</a>
+            <button class="button button-primary" type="submit">Adicionar integrante</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

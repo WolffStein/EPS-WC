@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Nova categoria | EPS{% endblock %}
+
+{% block content %}
+<section class="panel panel-form">
+    <div class="panel-heading">
+        <p class="eyebrow">Flexibilidade do inventário</p>
+        <h1>Nova categoria</h1>
+        <p>Crie um tipo de item e depois adicione os campos específicos que devem aparecer no formulário.</p>
+    </div>
+
+    <form method="post" class="form-grid">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-field {% if field.name == 'descricao' %}form-field-full{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}
+                    <small class="error-text">{{ error }}</small>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <div class="form-actions">
+            <a class="button button-ghost" href="{% url 'apreensoes:category_list' %}">Cancelar</a>
+            <button class="button button-primary" type="submit">Salvar categoria</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

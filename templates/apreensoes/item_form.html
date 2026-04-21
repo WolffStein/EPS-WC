@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Itens | EPS{% endblock %}
+
+{% block content %}
+<section class="panel panel-form">
+    <div class="panel-heading">
+        <p class="eyebrow">{{ operation.codigo }}</p>
+        <h1>{% if mode == "update" %}Editar item apreendido{% else %}Registrar item apreendido{% endif %}</h1>
+        <p>
+            Selecione a categoria para carregar automaticamente os campos específicos do tipo de
+            objeto apreendido.
+        </p>
+    </div>
+
+    <form method="post" class="form-grid" id="item-form">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="form-field {% if field.name == 'descricao' or field.name|slice:":6" == 'campo_' %}form-field-full{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <small>{{ field.help_text }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                    <small class="error-text">{{ error }}</small>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        {% if not form.selected_category %}
+            <div class="note-block form-field-full">
+                <strong>Próximo passo</strong>
+                <p>Escolha a categoria acima para que o formulário carregue os campos dinâmicos do item.</p>
+            </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <a class="button button-ghost" href="{% url 'apreensoes:operation_detail' operation.pk %}">Voltar</a>
+            <button class="button button-primary" type="submit">
+                {% if mode == "update" %}Salvar alterações{% else %}Registrar item{% endif %}
+            </button>
+        </div>
+    </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const categoryField = document.getElementById("id_category");
+    if (categoryField) {
+        categoryField.addEventListener("change", function () {
+            if (document.activeElement === categoryField) {
+                const url = new URL(window.location.href);
+                url.searchParams.set("category", categoryField.value);
+                window.location.href = url.toString();
+            }
+        });
+    }
+</script>
+{% endblock %}
