@@ -3,18 +3,29 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}EPS | Apreensões{% endblock %}</title>
+    <title>{% block title %}EPS | Apreensoes{% endblock %}</title>
     <link rel="stylesheet" href="/static/css/app.css">
 </head>
 <body>
+    <div class="page-noise" aria-hidden="true"></div>
     <div class="app-shell">
         <header class="topbar">
-            <div>
-                <p class="eyebrow">PCDF • MVP operacional</p>
-                <a class="brand" href="{% url 'apreensoes:dashboard' %}">Assistente de Apreensão</a>
+            <div class="brand-block">
+                <div class="brand-mark">EPS</div>
+                <div>
+                    <p class="eyebrow">PCDF . MVP operacional</p>
+                    <a class="brand" href="{% url 'apreensoes:dashboard' %}">Assistente de Apreensao</a>
+                    <p class="brand-subtitle">
+                        Inventario operacional com captura de evidencia, revisao humana e geracao de PDF.
+                    </p>
+                </div>
+            </div>
+            <div class="topbar-meta">
+                <span class="status-chip">Web mobile-first</span>
+                <span class="status-chip status-chip-quiet">Modo campo</span>
             </div>
             <nav class="topnav">
-                <a href="{% url 'apreensoes:dashboard' %}">Operações</a>
+                <a href="{% url 'apreensoes:dashboard' %}">Operacoes</a>
                 <a href="{% url 'apreensoes:category_list' %}">Categorias</a>
                 <a href="/admin/">Admin</a>
             </nav>

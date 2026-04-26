@@ -5,9 +5,11 @@
 {% block content %}
 <section class="panel panel-form">
     <div class="panel-heading">
-        <p class="eyebrow">Categoria: {{ category.nome }}</p>
-        <h1>Novo campo</h1>
-        <p>Configure como esse atributo aparece no formulário de cadastro do item apreendido.</p>
+        <div>
+            <p class="eyebrow">Categoria: {{ category.nome }}</p>
+            <h1>Novo campo</h1>
+            <p>Configure como esse atributo aparece no formulario de cadastro do item apreendido.</p>
+        </div>
     </div>
 
     <form method="post" class="form-grid">

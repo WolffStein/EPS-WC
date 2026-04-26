@@ -5,11 +5,11 @@
 {% block content %}
 <section class="hero-card">
     <div>
-        <p class="eyebrow">Campos dinâmicos por tipo de objeto</p>
+        <p class="eyebrow">Campos dinamicos por tipo de objeto</p>
         <h1>Categorias</h1>
         <p class="lead">
-            Use categorias padrão como eletrônicos e veículos, ou crie novas para refletir a
-            realidade de cada operação.
+            Use categorias padrao como eletronicos e veiculos, ou crie novas para refletir a
+            realidade de cada operacao.
         </p>
     </div>
     <a class="button button-primary" href="{% url 'apreensoes:category_create' %}">Nova categoria</a>
@@ -21,10 +21,10 @@
             <div class="panel-heading">
                 <div>
                     <h2>{{ category.nome }}</h2>
-                    <p>{{ category.descricao|default:"Sem descrição cadastrada." }}</p>
+                    <p>{{ category.descricao|default:"Sem descricao cadastrada." }}</p>
                 </div>
                 {% if category.is_default %}
-                    <span class="pill pill-neutral">Padrão</span>
+                    <span class="pill pill-neutral">Padrao</span>
                 {% endif %}
             </div>
             <div class="meta-row">
@@ -36,7 +36,7 @@
     {% empty %}
         <article class="empty-state">
             <h3>Nenhuma categoria cadastrada</h3>
-            <p>Cadastre a primeira categoria para habilitar o lançamento de itens personalizados.</p>
+            <p>Cadastre a primeira categoria para habilitar o lancamento de itens personalizados.</p>
         </article>
     {% endfor %}
 </section>

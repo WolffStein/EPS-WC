@@ -3,14 +3,14 @@
 {% block title %}Itens | EPS{% endblock %}
 
 {% block content %}
-<section class="panel panel-form">
-    <div class="panel-heading">
+<section class="detail-hero hero-command">
+    <div class="hero-copy">
         <div>
             <p class="eyebrow">{{ operation.codigo }}</p>
             <h1>{% if mode == "update" %}Editar item apreendido{% else %}Registrar item apreendido{% endif %}</h1>
-            <p>
-                O fluxo agora ja aceita imagem do item. Depois do salvamento, a IA pode sugerir
-                categoria, titulo e atributos visiveis para revisao humana.
+            <p class="lead">
+                O fluxo agora aceita imagem do item e leitura assistida por IA. O agente continua
+                revisando tudo antes de confirmar o registro.
             </p>
         </div>
         <div class="tag-cloud">
@@ -19,61 +19,210 @@
             <span class="tag">Revisao humana</span>
         </div>
     </div>
+    <div class="hero-side">
+        <div class="signal-board">
+            <p class="muted-kicker">Fluxo do registro</p>
+            <div class="signal-row">
+                <strong>1. Dados base</strong>
+                <p>Identifique categoria, titulo, quantidade e local encontrado.</p>
+            </div>
+            <div class="signal-row">
+                <strong>2. Evidencia</strong>
+                <p>Anexe uma foto clara quando ela puder acelerar o preenchimento.</p>
+            </div>
+            <div class="signal-row">
+                <strong>3. Revisao</strong>
+                <p>Use a sugestao da IA como rascunho, nunca como decisao final.</p>
+            </div>
+        </div>
+    </div>
+</section>
 
-    <form method="post" enctype="multipart/form-data" class="form-grid" id="item-form">
-        {% csrf_token %}
-        {% for field in form %}
-            <div class="form-field {% if field.name == 'descricao' or field.name == 'evidence_image' or field.name|slice:":6" == 'campo_' %}form-field-full{% endif %}">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}
-                    <small>{{ field.help_text }}</small>
-                {% endif %}
-                {% for error in field.errors %}
-                    <small class="error-text">{{ error }}</small>
+{% with selected_category=form.selected_category %}
+<section class="split-grid split-grid-wide form-shell">
+    <article class="panel">
+        <div class="panel-heading">
+            <div>
+                <p class="eyebrow">Registro operacional</p>
+                <h2>Dados do item</h2>
+                <p>Estruture o registro em blocos curtos para funcionar bem em campo, no celular.</p>
+            </div>
+        </div>
+
+        {% if form.non_field_errors %}
+            <div class="flash flash-error">
+                {% for error in form.non_field_errors %}
+                    {{ error }}
                 {% endfor %}
-            </div>
-        {% endfor %}
-
-        {% if not form.selected_category %}
-            <div class="note-block form-field-full">
-                <strong>Proximo passo</strong>
-                <p>Escolha a categoria acima para que o formulario carregue os campos dinamicos do item.</p>
-            </div>
-        {% elif form.selected_category.slug == "armas" %}
-            <div class="note-block form-field-full">
-                <strong>Teste de imagem para armas</strong>
-                <p>
-                    Priorize fotos onde aparecam tipo aparente, acabamento, marca, modelo ou numero de serie.
-                    A IA nao deve inventar calibre nem serial se isso nao estiver realmente visivel.
-                </p>
-            </div>
-        {% elif form.selected_category.slug == "drogas" %}
-            <div class="note-block form-field-full">
-                <strong>Teste de imagem para drogas</strong>
-                <p>
-                    Priorize fotos com boa visibilidade da embalagem, quantidade de porcoes, cor e rotulos.
-                    A IA deve sugerir apenas a apresentacao aparente, sem afirmar a substancia com certeza.
-                </p>
-            </div>
-        {% elif form.selected_category.slug == "municoes" %}
-            <div class="note-block form-field-full">
-                <strong>Teste de imagem para municoes</strong>
-                <p>
-                    Priorize fotos onde a quantidade esteja clara e onde calibre, marca ou acondicionamento
-                    possam ser vistos com seguranca. A IA deve separar municoes de armas e drogas quando a cena vier mista.
-                </p>
             </div>
         {% endif %}
 
-        <div class="form-actions">
-            <a class="button button-ghost" href="{% url 'apreensoes:operation_detail' operation.pk %}">Voltar</a>
-            <button class="button button-primary" type="submit">
-                {% if mode == "update" %}Salvar alteracoes{% else %}Registrar item{% endif %}
-            </button>
-        </div>
-    </form>
+        <form method="post" enctype="multipart/form-data" id="item-form">
+            {% csrf_token %}
+
+            <section class="form-section">
+                <div class="form-section-title">
+                    <div class="section-divider">
+                        <span class="section-index">01</span>
+                        <div>
+                            <strong>Dados base do registro</strong>
+                            <p>Categoria, identificacao do item, descricao essencial e anexo da evidencia.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    {% for field in form %}
+                        {% if field.name|slice:":6" != 'campo_' %}
+                            <div class="form-field {% if field.name == 'descricao' or field.name == 'evidence_image' %}form-field-full{% endif %}">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <small>{{ field.help_text }}</small>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <small class="error-text">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </section>
+
+            {% if selected_category %}
+                <section class="form-section">
+                    <div class="form-section-title">
+                        <div class="section-divider">
+                            <span class="section-index">02</span>
+                            <div>
+                                <strong>Campos da categoria {{ selected_category.nome }}</strong>
+                                <p>O formulario se adapta ao tipo de item escolhido para reduzir campos desnecessarios.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        {% for field in form %}
+                            {% if field.name|slice:":6" == 'campo_' %}
+                                <div class="form-field form-field-full">
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <small>{{ field.help_text }}</small>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <small class="error-text">{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </section>
+            {% endif %}
+
+            {% if not selected_category %}
+                <div class="note-block">
+                    <strong>Proximo passo</strong>
+                    <p>Escolha a categoria acima para que o formulario carregue os campos dinamicos do item.</p>
+                </div>
+            {% elif selected_category.slug == "armas" %}
+                <div class="note-block">
+                    <strong>Teste de imagem para armas</strong>
+                    <p>
+                        Priorize fotos onde aparecam tipo aparente, acabamento, marca, modelo ou numero de serie.
+                        A IA nao deve inventar calibre nem serial se isso nao estiver realmente visivel.
+                    </p>
+                </div>
+            {% elif selected_category.slug == "drogas" %}
+                <div class="note-block">
+                    <strong>Teste de imagem para drogas</strong>
+                    <p>
+                        Priorize fotos com boa visibilidade da embalagem, quantidade de porcoes, cor e rotulos.
+                        A IA deve sugerir apenas a apresentacao aparente, sem afirmar a substancia com certeza.
+                    </p>
+                </div>
+            {% elif selected_category.slug == "municoes" %}
+                <div class="note-block">
+                    <strong>Teste de imagem para municoes</strong>
+                    <p>
+                        Priorize fotos onde a quantidade esteja clara e onde calibre, marca ou acondicionamento
+                        possam ser vistos com seguranca. A IA deve separar municoes de armas e drogas quando a cena vier mista.
+                    </p>
+                </div>
+            {% endif %}
+
+            <div class="form-actions">
+                <a class="button button-ghost" href="{% url 'apreensoes:operation_detail' operation.pk %}">Voltar</a>
+                <button class="button button-primary" type="submit">
+                    {% if mode == "update" %}Salvar alteracoes{% else %}Registrar item{% endif %}
+                </button>
+            </div>
+        </form>
+    </article>
+
+    <aside class="side-stack">
+        <article class="panel">
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">Checklist de captura</p>
+                    <h2>Foto util para o agente</h2>
+                </div>
+            </div>
+            <ul class="ai-list">
+                <li>Evite reflexos, desfoque e excesso de objetos fora do contexto.</li>
+                <li>Se o item tiver numero, marca ou detalhe importante, aproxime a camera.</li>
+                <li>Quando a cena tiver arma, droga e municao juntas, considere fotos separadas.</li>
+            </ul>
+        </article>
+
+        <article class="panel panel-highlight">
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">Leitura assistida</p>
+                    <h2>O que a IA tenta preencher</h2>
+                </div>
+            </div>
+            <p class="lead">
+                Titulo, categoria sugerida, atributos visiveis, quantidade aparente e alertas sobre
+                informacoes que seguem dependentes de conferencia humana.
+            </p>
+            <div class="tag-cloud">
+                <span class="tag">Sem automacao cega</span>
+                <span class="tag">Cena mista detectavel</span>
+                <span class="tag">Revisao obrigatoria</span>
+            </div>
+        </article>
+
+        {% if mode == "update" and item %}
+            <article class="panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="eyebrow">Estado atual</p>
+                        <h2>{{ item.titulo }}</h2>
+                    </div>
+                </div>
+                <dl class="detail-list">
+                    <div>
+                        <dt>Categoria</dt>
+                        <dd>{{ item.category.nome }}</dd>
+                    </div>
+                    <div>
+                        <dt>Quantidade</dt>
+                        <dd>{{ item.quantidade }}</dd>
+                    </div>
+                    <div>
+                        <dt>Imagem</dt>
+                        <dd>{% if item.evidence_image %}Enviada{% else %}Pendente{% endif %}</dd>
+                    </div>
+                </dl>
+                {% if item.evidence_image %}
+                    <div class="evidence-frame evidence-frame-compact">
+                        <img class="evidence-thumb" src="{{ item.evidence_image.url }}" alt="Imagem do item {{ item.titulo }}">
+                    </div>
+                {% endif %}
+            </article>
+        {% endif %}
+    </aside>
 </section>
+{% endwith %}
 
 {% if mode == "update" and item %}
     <section class="panel panel-highlight">
@@ -127,15 +276,17 @@
                         {% if item.ai_summary %}
                             <p>{{ item.ai_summary }}</p>
                         {% endif %}
-                        {% if item.ai_confidence %}
-                            <span class="tag">Confianca: {{ item.ai_confidence }}</span>
-                        {% endif %}
-                        {% if item.ai_quantity_hint %}
-                            <span class="tag">Quantidade sugerida: {{ item.ai_quantity_hint }}</span>
-                        {% endif %}
-                        {% if item.ai_scene_type_display %}
-                            <span class="tag">Cena: {{ item.ai_scene_type_display }}</span>
-                        {% endif %}
+                        <div class="tag-cloud">
+                            {% if item.ai_confidence %}
+                                <span class="tag">Confianca: {{ item.ai_confidence }}</span>
+                            {% endif %}
+                            {% if item.ai_quantity_hint %}
+                                <span class="tag">Quantidade sugerida: {{ item.ai_quantity_hint }}</span>
+                            {% endif %}
+                            {% if item.ai_scene_type_display %}
+                                <span class="tag">Cena: {{ item.ai_scene_type_display }}</span>
+                            {% endif %}
+                        </div>
                     </div>
 
                     {% if item.ai_should_create_multiple_records %}

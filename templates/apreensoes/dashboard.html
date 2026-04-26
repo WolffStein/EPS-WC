@@ -3,16 +3,63 @@
 {% block title %}Operacoes | EPS{% endblock %}
 
 {% block content %}
-<section class="hero-card">
-    <div>
-        <p class="eyebrow">Inventario digital para diligencias</p>
-        <h1>Operacoes de apreensao</h1>
-        <p class="lead">
-            O MVP ja cobre o fluxo base de operacao, equipe, itens e PDF. A partir de agora,
-            a frente de IA entra como apoio ao preenchimento com analise de imagem e revisao humana.
-        </p>
+<section class="hero-card hero-command">
+    <div class="hero-copy">
+        <div>
+            <p class="eyebrow">Inventario digital para diligencias</p>
+            <h1>Operacoes de apreensao</h1>
+            <p class="lead">
+                O MVP ja cobre o fluxo base de operacao, equipe, itens e PDF. Agora o produto ganha
+                uma frente de IA para apoio ao preenchimento com analise de imagem e revisao humana.
+            </p>
+        </div>
+        <div class="hero-inline-metrics">
+            <article class="hero-metric">
+                <span>Fluxo principal</span>
+                <strong>Operacao, equipe, item, imagem e PDF final</strong>
+            </article>
+            <article class="hero-metric">
+                <span>Forma de uso</span>
+                <strong>Web responsiva pronta para celular em campo</strong>
+            </article>
+        </div>
     </div>
-    <a class="button button-primary" href="{% url 'apreensoes:operation_create' %}">Nova operacao</a>
+    <div class="hero-side">
+        <div class="signal-board">
+            <p class="muted-kicker">Painel de missao</p>
+            <div class="signal-row">
+                <strong>Registro em campo</strong>
+                <p>Cadastro simples para quem esta no local da apreensao.</p>
+            </div>
+            <div class="signal-row">
+                <strong>Leitura assistida por imagem</strong>
+                <p>A foto acelera o preenchimento, mas o agente continua no controle.</p>
+            </div>
+            <div class="signal-row">
+                <strong>Saida operacional</strong>
+                <p>Os itens consolidados alimentam o PDF e a base propria do sistema.</p>
+            </div>
+        </div>
+        <a class="button button-primary" href="{% url 'apreensoes:operation_create' %}">Nova operacao</a>
+    </div>
+</section>
+
+<section class="quick-grid">
+    <a class="quick-card" href="{% url 'apreensoes:operation_create' %}">
+        <p class="eyebrow">Comeco rapido</p>
+        <strong>Criar operacao</strong>
+        <p>Preparar uma nova diligencia com chefe, alvo, local e data.</p>
+    </a>
+    <a class="quick-card" href="{% url 'apreensoes:category_list' %}">
+        <p class="eyebrow">Modelagem viva</p>
+        <strong>Revisar categorias</strong>
+        <p>Ajustar os campos dinamicos antes do uso em campo.</p>
+    </a>
+    <a class="quick-card" href="/admin/">
+        <p class="eyebrow">Apoio interno</p>
+        <strong>Abrir admin</strong>
+        <p>Consultar dados, seeds e estrutura administrativa do projeto.</p>
+    </a>
 </section>
 
 <section class="stats-grid">
@@ -59,11 +106,15 @@
     </article>
 </section>
 
-<section class="panel">
+<section class="panel panel-highlight">
     <div class="panel-heading">
         <div>
-            <p class="eyebrow">Esboco inicial do front</p>
-            <h2>Fluxo pensado para o usuario em campo</h2>
+            <p class="eyebrow">Fluxo de uso</p>
+            <h2>Jornada pensada para o usuario em campo</h2>
+            <p class="lead">
+                A interface foi reorganizada para deixar claro o que acontece antes, durante e depois
+                do registro da apreensao.
+            </p>
         </div>
     </div>
     <div class="roadmap-strip">
@@ -88,8 +139,10 @@
 
 <section class="panel">
     <div class="panel-heading">
-        <h2>Lista de operacoes</h2>
-        <p>Abra uma operacao para lancar equipe, categorias, imagens e itens apreendidos.</p>
+        <div>
+            <h2>Lista de operacoes</h2>
+            <p>Abra uma operacao para lancar equipe, categorias, imagens e itens apreendidos.</p>
+        </div>
     </div>
 
     {% if operations %}
@@ -121,9 +174,12 @@
                             <dd>{{ operation.suspeito_nome }}</dd>
                         </div>
                     </dl>
+                    <div class="tag-cloud">
+                        <span class="tag">Equipe: {{ operation.total_integrantes }}</span>
+                        <span class="tag">Itens: {{ operation.total_itens }}</span>
+                    </div>
                     <div class="meta-row">
-                        <span>{{ operation.total_integrantes }} integrante(s)</span>
-                        <span>{{ operation.total_itens }} item(ns)</span>
+                        <span>Fluxo pronto para equipe, itens e PDF</span>
                     </div>
                     <a class="button button-secondary" href="{% url 'apreensoes:operation_detail' operation.pk %}">
                         Abrir operacao

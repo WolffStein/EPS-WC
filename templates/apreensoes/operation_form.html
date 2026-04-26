@@ -5,9 +5,11 @@
 {% block content %}
 <section class="panel panel-form">
     <div class="panel-heading">
-        <p class="eyebrow">Planejamento da diligência</p>
-        <h1>{{ page_title }}</h1>
-        <p>Cadastre os dados iniciais da operação, o local da diligência e o suspeito alvo.</p>
+        <div>
+            <p class="eyebrow">Planejamento da diligencia</p>
+            <h1>{{ page_title }}</h1>
+            <p>Cadastre os dados iniciais da operacao, o local da diligencia e o suspeito alvo.</p>
+        </div>
     </div>
 
     <form method="post" class="form-grid">
@@ -27,7 +29,7 @@
 
         <div class="form-actions">
             <a class="button button-ghost" href="{% url 'apreensoes:dashboard' %}">Cancelar</a>
-            <button class="button button-primary" type="submit">Salvar operação</button>
+            <button class="button button-primary" type="submit">Salvar operacao</button>
         </div>
     </form>
 </section>
