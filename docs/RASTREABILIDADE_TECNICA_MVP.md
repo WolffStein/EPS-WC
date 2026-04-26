@@ -75,6 +75,8 @@ Foi priorizado um MVP com foco em operacao real:
 - suspeito e local
 - categorias configuraveis
 - itens apreendidos com campos variaveis por categoria
+- upload de imagem por item
+- analise assistida por IA para apoio ao preenchimento
 - encerramento da operacao
 - geracao de PDF
 - persistencia em banco
@@ -86,18 +88,20 @@ Nao foi implementado neste momento:
 - OCR
 - leitura automatica de foto
 - extracao de IMEI por IA
-- integracao com APIs externas de IA
 - autenticacao complexa por perfil
 - permissao granular por departamento
 - reproduzir com fidelidade absoluta o layout do PDF oficial
 
 ### 3.3 Justificativa
 
-A justificativa foi simples:
+A justificativa inicial foi simples:
 
 - o fluxo de negocio principal ainda nao existia no sistema
 - o formulario oficial ainda nao tinha sido enviado
 - sem o processo basico funcionando, a camada de IA seria precoce
+
+Depois que o fluxo base ficou funcional, a camada de IA passou a entrar como acelerador de preenchimento
+com revisao humana obrigatoria.
 
 ---
 
@@ -242,6 +246,9 @@ Exemplos:
 - veiculos
 - documentos
 - midias de armazenamento
+- armas
+- drogas
+- municoes
 - outros
 
 Objetivo:
@@ -304,6 +311,8 @@ Trade-off:
 Foi criada uma migracao de seed:
 
 - [apreensoes/migrations/0002_seed_default_categories.py](C:\Users\Cliente\Documents\FGA2\EPS\EPS-WC\apreensoes\migrations\0002_seed_default_categories.py)
+- [apreensoes/migrations/0004_seed_armas_drogas_categories.py](C:\Users\Cliente\Documents\FGA2\EPS\EPS-WC\apreensoes\migrations\0004_seed_armas_drogas_categories.py)
+- [apreensoes/migrations/0005_seed_municoes_category.py](C:\Users\Cliente\Documents\FGA2\EPS\EPS-WC\apreensoes\migrations\0005_seed_municoes_category.py)
 
 Ela insere categorias iniciais com campos que fazem sentido para o dominio:
 
@@ -311,6 +320,9 @@ Ela insere categorias iniciais com campos que fazem sentido para o dominio:
 - Veiculos
 - Documentos
 - Midias de armazenamento
+- Armas
+- Drogas
+- Municoes
 - Outros
 
 Justificativa:
@@ -368,6 +380,9 @@ Na tela da operacao, o usuario consegue:
 - encerrar a operacao
 - adicionar equipe
 - registrar itens
+- anexar imagem ao item
+- pedir analise da IA
+- aplicar sugestoes automaticas com revisao
 - baixar PDF
 
 Arquivo:
@@ -397,9 +412,59 @@ Arquivo de estilo:
 
 ---
 
-## 10. Geracao de PDF
+## 10. Camada de IA para imagem
 
-### 10.1 Estado atual
+### 10.1 Objetivo
+
+A camada de IA foi adicionada depois do fluxo principal ja estar funcional.
+
+Objetivo:
+
+- reduzir digitacao manual em campo
+- sugerir preenchimento inicial a partir da foto
+- manter o agente como revisor final
+
+### 10.2 Provider escolhido neste momento
+
+Foi integrada a Gemini API.
+
+Motivos:
+
+- existe free tier util para prototipacao
+- a API aceita imagem de forma direta
+- o SDK atual permite resposta estruturada em JSON
+
+Arquivo principal:
+
+- [apreensoes/ai.py](C:\Users\Cliente\Documents\FGA2\EPS\EPS-WC\apreensoes\ai.py)
+
+### 10.3 Comportamento implementado
+
+O fluxo atual:
+
+- aceita imagem por item apreendido
+- envia a foto para analise visual
+- pede resposta estruturada para o backend
+- sugere titulo, categoria, atributos visiveis e observacoes
+- detecta cena mista quando a foto parece conter mais de um registro
+- evita sobrescrever automaticamente os campos principais em cenas ambiguas
+
+### 10.4 Limites assumidos
+
+A IA nao:
+
+- confirma IMEI, serial, calibre ou substancia sem evidencia visual clara
+- fecha o item sozinha
+- substitui revisao humana
+
+Tambem foi assumido, por enquanto, o uso de Gemini API para prototipacao. Para ambiente real com
+dados sensiveis, uma alternativa local como Ollama continua sendo uma evolucao recomendada.
+
+---
+
+## 11. Geracao de PDF
+
+### 11.1 Estado atual
 
 O projeto gera PDF funcional com:
 
@@ -412,7 +477,7 @@ Arquivo:
 
 - [apreensoes/pdf.py](C:\Users\Cliente\Documents\FGA2\EPS\EPS-WC\apreensoes\pdf.py)
 
-### 10.2 Biblioteca escolhida
+### 11.2 Biblioteca escolhida
 
 Foi usado `reportlab`.
 
@@ -422,7 +487,7 @@ Motivos:
 - integracao simples com Django
 - geracao server-side estavel
 
-### 10.3 Limitacao conhecida
+### 11.3 Limitacao conhecida
 
 O layout ainda nao replica o formulario oficial da PCDF com fidelidade total.
 
@@ -436,13 +501,13 @@ Plano:
 
 ---
 
-## 11. Docker, PostgreSQL e pgAdmin
+## 12. Docker, PostgreSQL e pgAdmin
 
-### 11.1 Problema resolvido
+### 12.1 Problema resolvido
 
 Era necessario inspecionar visualmente o banco e os relacionamentos.
 
-### 11.2 Solucao implementada
+### 12.2 Solucao implementada
 
 Foi criado um ambiente Docker com:
 
@@ -454,14 +519,14 @@ Arquivo:
 
 - [docker-compose.yml](C:\Users\Cliente\Documents\FGA2\EPS\EPS-WC\docker-compose.yml)
 
-### 11.3 Configuracao do Django
+### 12.3 Configuracao do Django
 
 O `settings.py` agora:
 
 - usa SQLite por padrao fora do Docker
 - usa PostgreSQL quando `DB_ENGINE=postgres`
 
-### 11.4 pgAdmin preconfigurado
+### 12.4 pgAdmin preconfigurado
 
 Foi adicionado:
 
@@ -475,7 +540,7 @@ Objetivo:
 
 ---
 
-## 12. Preocupacoes de seguranca e qualidade
+## 13. Preocupacoes de seguranca e qualidade
 
 As mudancas foram validadas com:
 
@@ -491,14 +556,15 @@ Decisoes relevantes:
 - o banco pode ser configurado por variavel de ambiente
 - o compose separa responsabilidades por servico
 - o pgAdmin ficou em modo pratico para ambiente de desenvolvimento
+- a camada de IA trata erros de chave, cota e imagem invalida de forma explicita
 
 ---
 
-## 13. Hipoteses assumidas ate aqui
+## 14. Hipoteses assumidas ate aqui
 
 Como parte do material de negocio ainda nao chegou, algumas hipoteses foram necessarias:
 
-### 13.1 Hipotese sobre o PDF
+### 14.1 Hipotese sobre o PDF
 
 Hipotese:
 
@@ -508,7 +574,7 @@ Impacto:
 
 - permitiu construir a logica sem bloquear a entrega
 
-### 13.2 Hipotese sobre o uso em campo
+### 14.2 Hipotese sobre o uso em campo
 
 Hipotese:
 
@@ -518,7 +584,7 @@ Impacto:
 
 - entregamos valor mais rapido
 
-### 13.3 Hipotese sobre categorias
+### 14.3 Hipotese sobre categorias
 
 Hipotese:
 
@@ -528,9 +594,19 @@ Impacto:
 
 - a modelagem foi desenhada para flexibilidade
 
+### 14.4 Hipotese sobre IA no MVP
+
+Hipotese:
+
+- a IA agrega mais valor quando atua como assistente conservadora e nao como automacao cega
+
+Impacto:
+
+- o sistema aplica sugestoes com cautela e destaca cenas que pedem desmembramento manual
+
 ---
 
-## 14. O que ja esta pronto para demonstracao
+## 15. O que ja esta pronto para demonstracao
 
 Hoje o sistema ja permite demonstrar:
 
@@ -540,40 +616,43 @@ Hoje o sistema ja permite demonstrar:
 4. criar categoria nova
 5. criar campos para categoria
 6. registrar item apreendido com campos especificos
-7. iniciar e encerrar operacao
-8. gerar PDF
-9. inspecionar estrutura relacional no PostgreSQL via pgAdmin
+7. anexar imagem ao item
+8. pedir analise visual com IA
+9. aplicar preenchimento automatico assistido
+10. iniciar e encerrar operacao
+11. gerar PDF
+12. inspecionar estrutura relacional no PostgreSQL via pgAdmin
 
 ---
 
-## 15. Pendencias e proximos passos recomendados
+## 16. Pendencias e proximos passos recomendados
 
-### 15.1 Alta prioridade
+### 16.1 Alta prioridade
 
 - receber o formulario/PDF oficial da PCDF
 - ajustar o layout do PDF para aderencia visual exata
 - criar usuario admin inicial e fluxo simples de acesso
 - definir quais campos sao obrigatorios por operacao real
 
-### 15.2 Media prioridade
+### 16.2 Media prioridade
 
 - melhorar rastreabilidade de alteracoes nos itens
-- incluir upload de imagens por item apreendido
 - registrar cadeia de custodia basica
 - adicionar busca e filtros nas operacoes
 
-### 15.3 Evolucao futura com IA
+### 16.3 Evolucao futura com IA
 
-Depois do fluxo base consolidado:
+Depois da fase atual com Gemini:
 
 - OCR de serial e IMEI
 - leitura assistida por foto
-- preenchimento semi-automatico do formulario
+- prompts especializados por categoria operacional
+- comparacao entre Gemini e uma opcao local com Ollama
 - revisao humana obrigatoria antes do fechamento
 
 ---
 
-## 16. Estrutura atual do projeto
+## 17. Estrutura atual do projeto
 
 Mapa resumido do que existe hoje:
 
@@ -587,7 +666,7 @@ Mapa resumido do que existe hoje:
 
 ---
 
-## 17. Resumo executivo
+## 18. Resumo executivo
 
 O projeto saiu de um repositorio base de onboarding e passou a ser um MVP funcional de apoio a
 apreensoes. A estrutura atual foi pensada para entregar valor rapido no processo de negocio,
@@ -596,7 +675,7 @@ mantendo flexibilidade para:
 - adaptar categorias
 - gerar PDF
 - trocar banco
-- evoluir para IA depois
+- evoluir a IA com mais seguranca depois
 
 Em outras palavras:
 
@@ -604,5 +683,6 @@ Em outras palavras:
 - depois foi garantida a persistencia
 - depois a exportacao em PDF
 - depois a inspecao relacional com PostgreSQL e pgAdmin
+- depois a assistencia por imagem com Gemini e revisao humana
 
 Esse encadeamento foi a espinha dorsal da estruturacao do projeto ate aqui.

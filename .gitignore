@@ -19,6 +19,7 @@ coverage.xml
 htmlcov/
 db.sqlite3
 .env
+media/
 
 # OS/editor noise
 .DS_Store

@@ -7,7 +7,7 @@
     <div>
         <p class="eyebrow">{{ operation.codigo }}</p>
         <h1>{{ operation.nome }}</h1>
-        <p class="lead">{{ operation.departamento }} • {{ operation.data_operacao|date:"d/m/Y" }}</p>
+        <p class="lead">{{ operation.departamento }} &middot; {{ operation.data_operacao|date:"d/m/Y" }}</p>
     </div>
     <div class="hero-actions">
         <span class="pill pill-{{ operation.status }}">{{ operation.get_status_display }}</span>
@@ -19,11 +19,11 @@
 <section class="split-grid">
     <article class="panel">
         <div class="panel-heading">
-            <h2>Resumo da operação</h2>
+            <h2>Resumo da operacao</h2>
         </div>
         <dl class="info-list compact">
             <div>
-                <dt>Chefe responsável</dt>
+                <dt>Chefe responsavel</dt>
                 <dd>{{ operation.responsavel }}</dd>
             </div>
             <div>
@@ -43,7 +43,7 @@
                 <dd>{{ operation.suspeito_documento|default:"-" }}</dd>
             </div>
             <div>
-                <dt>Endereço do suspeito</dt>
+                <dt>Endereco do suspeito</dt>
                 <dd>{{ operation.suspeito_endereco|default:"-" }}</dd>
             </div>
         </dl>
@@ -52,21 +52,21 @@
             {% if operation.status == "planejada" %}
                 <form method="post" action="{% url 'apreensoes:operation_start' operation.pk %}">
                     {% csrf_token %}
-                    <button class="button button-secondary" type="submit">Iniciar apreensão</button>
+                    <button class="button button-secondary" type="submit">Iniciar apreensao</button>
                 </form>
             {% endif %}
 
             {% if operation.status != "encerrada" %}
                 <form method="post" action="{% url 'apreensoes:operation_close' operation.pk %}">
                     {% csrf_token %}
-                    <button class="button button-danger" type="submit">Encerrar operação</button>
+                    <button class="button button-danger" type="submit">Encerrar operacao</button>
                 </form>
             {% endif %}
         </div>
 
         {% if operation.observacoes %}
             <div class="note-block">
-                <strong>Observações</strong>
+                <strong>Observacoes</strong>
                 <p>{{ operation.observacoes }}</p>
             </div>
         {% endif %}
@@ -86,7 +86,7 @@
                     <div class="list-card">
                         <div>
                             <strong>{{ member.nome }}</strong>
-                            <p>{{ member.cargo }} • {{ member.matricula|default:"sem matrícula" }}</p>
+                            <p>{{ member.cargo }} &middot; {{ member.matricula|default:"sem matricula" }}</p>
                             <p>{{ member.contato|default:"sem contato" }}</p>
                         </div>
                         {% if operation.status != "encerrada" %}
@@ -104,9 +104,28 @@
     </article>
 </section>
 
+<section class="panel panel-highlight">
+    <div class="panel-heading">
+        <div>
+            <p class="eyebrow">Visao do produto</p>
+            <h2>IA como copiloto de preenchimento</h2>
+            <p class="lead">
+                Nesta etapa, a tecnologia mais segura para o projeto continua sendo web mobile-first.
+                A IA entra para acelerar o preenchimento a partir da foto, sempre com revisao humana.
+            </p>
+        </div>
+    </div>
+    <div class="tag-cloud">
+        <span class="tag">Fluxo responsivo</span>
+        <span class="tag">Uso em celular</span>
+        <span class="tag">Analise visual</span>
+        <span class="tag">Conferencia manual</span>
+    </div>
+</section>
+
 <section class="panel">
     <div class="panel-heading">
-        <h2>Categorias disponíveis</h2>
+        <h2>Categorias disponiveis</h2>
         <a class="button button-secondary" href="{% url 'apreensoes:category_list' %}">Gerenciar categorias</a>
     </div>
     <div class="category-chip-grid">
@@ -114,13 +133,13 @@
             <article class="category-chip-card">
                 <div>
                     <strong>{{ category.nome }}</strong>
-                    <p>{{ category.descricao|default:"Sem descrição cadastrada." }}</p>
+                    <p>{{ category.descricao|default:"Sem descricao cadastrada." }}</p>
                 </div>
                 <div class="meta-row">
                     <span>{{ category.field_definitions.count }} campo(s)</span>
                     {% if operation.status != "encerrada" %}
                         <a class="button button-ghost button-small" href="{% url 'apreensoes:item_create' operation.pk %}?category={{ category.pk }}">
-                            Lançar item
+                            Lancar item
                         </a>
                     {% endif %}
                 </div>
@@ -149,27 +168,75 @@
                         <span class="pill pill-neutral">Qtd. {{ item.quantidade }}</span>
                     </div>
                     <p class="item-meta">
-                        {{ item.local_encontrado|default:"Local não informado" }}
-                        {% if item.estado %}• {{ item.estado }}{% endif %}
+                        {{ item.local_encontrado|default:"Local nao informado" }}
+                        {% if item.estado %}&middot; {{ item.estado }}{% endif %}
                     </p>
-                    {% if item.descricao %}
-                        <p>{{ item.descricao }}</p>
-                    {% endif %}
 
-                    {% if item.extra_field_items %}
-                        <dl class="detail-list">
-                            {% for field in item.extra_field_items %}
-                                <div>
-                                    <dt>{{ field.label }}</dt>
-                                    <dd>{{ field.value }}</dd>
+                    <div class="item-media-grid">
+                        {% if item.evidence_image %}
+                            <div class="evidence-frame">
+                                <img class="evidence-thumb" src="{{ item.evidence_image.url }}" alt="Imagem do item {{ item.titulo }}">
+                            </div>
+                        {% endif %}
+
+                        <div class="ai-stack">
+                            {% if item.descricao %}
+                                <p>{{ item.descricao }}</p>
+                            {% endif %}
+
+                            {% if item.extra_field_items %}
+                                <dl class="detail-list">
+                                    {% for field in item.extra_field_items %}
+                                        <div>
+                                            <dt>{{ field.label }}</dt>
+                                            <dd>{{ field.value }}</dd>
+                                        </div>
+                                    {% endfor %}
+                                </dl>
+                            {% endif %}
+
+                            {% if item.has_ai_analysis %}
+                                <div class="ai-summary-card">
+                                    <p class="muted-kicker">Sugestao da IA &middot; {{ item.ai_analysis_provider|upper }} {{ item.ai_analysis_model }}</p>
+                                    <strong>{{ item.ai_suggested_title|default:item.titulo }}</strong>
+                                    {% if item.ai_summary %}
+                                        <p>{{ item.ai_summary }}</p>
+                                    {% endif %}
+                                    <div class="tag-cloud">
+                                        {% if item.ai_suggested_category %}
+                                            <span class="tag">Categoria sugerida: {{ item.ai_suggested_category }}</span>
+                                        {% endif %}
+                                        {% if item.ai_confidence %}
+                                            <span class="tag">Confianca: {{ item.ai_confidence }}</span>
+                                        {% endif %}
+                                        {% if item.ai_scene_type_display %}
+                                            <span class="tag">Cena: {{ item.ai_scene_type_display }}</span>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                            {% endfor %}
-                        </dl>
-                    {% endif %}
+                                {% if item.ai_should_create_multiple_records %}
+                                    <div class="mini-note">
+                                        A IA sinalizou que esta foto parece conter mais de um grupo de evidencia.
+                                        Revise o item para desmembrar arma, droga ou municoes em registros separados.
+                                    </div>
+                                {% endif %}
+                            {% elif item.evidence_image %}
+                                <div class="mini-note">
+                                    A imagem foi enviada. Falta rodar a analise de IA para gerar sugestoes.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
 
                     {% if operation.status != "encerrada" %}
                         <div class="action-row">
                             <a class="button button-secondary button-small" href="{% url 'apreensoes:item_update' item.pk %}">Editar</a>
+                            {% if item.evidence_image %}
+                                <form method="post" action="{% url 'apreensoes:item_analyze_image' item.pk %}">
+                                    {% csrf_token %}
+                                    <button class="button button-primary button-small" type="submit">Analisar imagem</button>
+                                </form>
+                            {% endif %}
                             <form method="post" action="{% url 'apreensoes:item_delete' item.pk %}">
                                 {% csrf_token %}
                                 <button class="button button-ghost button-small" type="submit">Remover</button>
@@ -182,7 +249,7 @@
     {% else %}
         <div class="empty-state compact">
             <h3>Nenhum item registrado</h3>
-            <p>Quando a diligência começar, os itens apreendidos aparecem aqui e entram no PDF final.</p>
+            <p>Quando a diligencia comecar, os itens apreendidos aparecem aqui e entram no PDF final.</p>
         </div>
     {% endif %}
 </section>

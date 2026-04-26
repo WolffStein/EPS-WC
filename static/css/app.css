@@ -157,7 +157,8 @@ textarea {
 .stats-grid,
 .split-grid,
 .card-grid,
-.category-chip-grid {
+.category-chip-grid,
+.concept-grid {
     display: grid;
     gap: 18px;
 }
@@ -178,15 +179,41 @@ textarea {
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
+.concept-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
 .stat-card,
 .operation-card,
 .category-chip-card,
 .item-card,
+.concept-card,
 .list-card {
     background: var(--surface-strong);
     border: 1px solid var(--line);
     border-radius: 18px;
     padding: 18px;
+}
+
+.concept-card {
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.concept-card h2 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+}
+
+.concept-card-primary {
+    background: linear-gradient(180deg, rgba(15, 118, 110, 0.1), rgba(255, 255, 255, 0.95));
+}
+
+.concept-card-accent {
+    background: linear-gradient(180deg, rgba(201, 111, 29, 0.14), rgba(255, 255, 255, 0.95));
 }
 
 .stat-card span {
@@ -250,6 +277,30 @@ textarea {
 .meta-row {
     color: var(--muted);
     font-size: 0.92rem;
+}
+
+.roadmap-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+}
+
+.roadmap-step {
+    padding: 18px;
+    border-radius: 18px;
+    background: rgba(15, 118, 110, 0.06);
+    border: 1px solid rgba(15, 118, 110, 0.08);
+}
+
+.roadmap-step strong {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.roadmap-step p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.5;
 }
 
 .list-stack {
@@ -340,6 +391,24 @@ textarea {
     color: #1d4ed8;
 }
 
+.tag-cloud {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    background: rgba(24, 36, 49, 0.07);
+    color: var(--primary-dark);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
 .form-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -410,6 +479,110 @@ textarea {
     background: rgba(201, 111, 29, 0.1);
 }
 
+.note-block-strong {
+    background: rgba(159, 45, 45, 0.1);
+    border: 1px solid rgba(159, 45, 45, 0.14);
+}
+
+.panel-highlight {
+    background: linear-gradient(180deg, rgba(15, 118, 110, 0.08), rgba(255, 255, 255, 0.88));
+}
+
+.item-media-grid {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 18px;
+    margin-top: 16px;
+}
+
+.evidence-frame {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+    padding: 12px;
+    border-radius: 18px;
+    background: rgba(24, 36, 49, 0.04);
+    border: 1px dashed rgba(24, 36, 49, 0.16);
+}
+
+.evidence-thumb {
+    width: 100%;
+    max-height: 260px;
+    object-fit: cover;
+    border-radius: 14px;
+}
+
+.ai-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.detected-item-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.detected-item-card {
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(24, 36, 49, 0.1);
+}
+
+.detected-item-card strong {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.detected-item-card p {
+    margin: 0 0 10px;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.detected-item-meta {
+    margin-top: 8px;
+    color: var(--primary-dark) !important;
+    font-weight: 700;
+}
+
+.ai-summary-card {
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: rgba(29, 78, 216, 0.08);
+    border: 1px solid rgba(29, 78, 216, 0.12);
+}
+
+.ai-summary-card strong {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.muted-kicker {
+    margin: 0 0 8px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.ai-list {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.mini-note {
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: rgba(201, 111, 29, 0.12);
+    color: var(--ink);
+}
+
 .error-text {
     color: var(--danger) !important;
 }
@@ -426,7 +599,8 @@ textarea {
     .stats-grid,
     .split-grid,
     .form-grid,
-    .info-list {
+    .info-list,
+    .item-media-grid {
         grid-template-columns: 1fr;
     }
 

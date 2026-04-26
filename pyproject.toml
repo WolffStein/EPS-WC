@@ -12,6 +12,7 @@ django = "^5.2.7"
 pydantic = "^2.12.0"
 reportlab = "^4.4.10"
 psycopg = {extras = ["binary"], version = "^3.3.3"}
+google-genai = "^1.73.1"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "^1.8.6"

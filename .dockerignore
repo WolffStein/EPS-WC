@@ -7,6 +7,7 @@ __pycache__
 *.pyo
 *.pyd
 db.sqlite3
+media
 htmlcov
 .coverage
 PDFS e Slides

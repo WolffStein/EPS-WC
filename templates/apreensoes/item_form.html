@@ -5,18 +5,25 @@
 {% block content %}
 <section class="panel panel-form">
     <div class="panel-heading">
-        <p class="eyebrow">{{ operation.codigo }}</p>
-        <h1>{% if mode == "update" %}Editar item apreendido{% else %}Registrar item apreendido{% endif %}</h1>
-        <p>
-            Selecione a categoria para carregar automaticamente os campos específicos do tipo de
-            objeto apreendido.
-        </p>
+        <div>
+            <p class="eyebrow">{{ operation.codigo }}</p>
+            <h1>{% if mode == "update" %}Editar item apreendido{% else %}Registrar item apreendido{% endif %}</h1>
+            <p>
+                O fluxo agora ja aceita imagem do item. Depois do salvamento, a IA pode sugerir
+                categoria, titulo e atributos visiveis para revisao humana.
+            </p>
+        </div>
+        <div class="tag-cloud">
+            <span class="tag">Web mobile-first</span>
+            <span class="tag">Upload de imagem</span>
+            <span class="tag">Revisao humana</span>
+        </div>
     </div>
 
-    <form method="post" class="form-grid" id="item-form">
+    <form method="post" enctype="multipart/form-data" class="form-grid" id="item-form">
         {% csrf_token %}
         {% for field in form %}
-            <div class="form-field {% if field.name == 'descricao' or field.name|slice:":6" == 'campo_' %}form-field-full{% endif %}">
+            <div class="form-field {% if field.name == 'descricao' or field.name == 'evidence_image' or field.name|slice:":6" == 'campo_' %}form-field-full{% endif %}">
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                 {{ field }}
                 {% if field.help_text %}
@@ -30,19 +37,206 @@
 
         {% if not form.selected_category %}
             <div class="note-block form-field-full">
-                <strong>Próximo passo</strong>
-                <p>Escolha a categoria acima para que o formulário carregue os campos dinâmicos do item.</p>
+                <strong>Proximo passo</strong>
+                <p>Escolha a categoria acima para que o formulario carregue os campos dinamicos do item.</p>
+            </div>
+        {% elif form.selected_category.slug == "armas" %}
+            <div class="note-block form-field-full">
+                <strong>Teste de imagem para armas</strong>
+                <p>
+                    Priorize fotos onde aparecam tipo aparente, acabamento, marca, modelo ou numero de serie.
+                    A IA nao deve inventar calibre nem serial se isso nao estiver realmente visivel.
+                </p>
+            </div>
+        {% elif form.selected_category.slug == "drogas" %}
+            <div class="note-block form-field-full">
+                <strong>Teste de imagem para drogas</strong>
+                <p>
+                    Priorize fotos com boa visibilidade da embalagem, quantidade de porcoes, cor e rotulos.
+                    A IA deve sugerir apenas a apresentacao aparente, sem afirmar a substancia com certeza.
+                </p>
+            </div>
+        {% elif form.selected_category.slug == "municoes" %}
+            <div class="note-block form-field-full">
+                <strong>Teste de imagem para municoes</strong>
+                <p>
+                    Priorize fotos onde a quantidade esteja clara e onde calibre, marca ou acondicionamento
+                    possam ser vistos com seguranca. A IA deve separar municoes de armas e drogas quando a cena vier mista.
+                </p>
             </div>
         {% endif %}
 
         <div class="form-actions">
             <a class="button button-ghost" href="{% url 'apreensoes:operation_detail' operation.pk %}">Voltar</a>
             <button class="button button-primary" type="submit">
-                {% if mode == "update" %}Salvar alterações{% else %}Registrar item{% endif %}
+                {% if mode == "update" %}Salvar alteracoes{% else %}Registrar item{% endif %}
             </button>
         </div>
     </form>
 </section>
+
+{% if mode == "update" and item %}
+    <section class="panel panel-highlight">
+        <div class="panel-heading">
+            <div>
+                <p class="eyebrow">Assistente visual</p>
+                <h2>Analise de imagem com IA</h2>
+                <p class="lead">
+                    Esta etapa tenta antecipar o preenchimento a partir da foto, mas o agente ainda
+                    precisa revisar tudo antes de confirmar o item.
+                </p>
+            </div>
+            {% if item.evidence_image %}
+                <div class="hero-actions">
+                    <form method="post" action="{% url 'apreensoes:item_analyze_image' item.pk %}">
+                        {% csrf_token %}
+                        <button class="button button-primary" type="submit">Rodar analise com IA</button>
+                    </form>
+                    {% if item.has_ai_analysis %}
+                        <form method="post" action="{% url 'apreensoes:item_apply_ai' item.pk %}">
+                            {% csrf_token %}
+                            <button class="button button-secondary" type="submit">Aplicar preenchimento automatico</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="item-media-grid">
+            <div class="evidence-frame">
+                {% if item.evidence_image %}
+                    <img class="evidence-thumb" src="{{ item.evidence_image.url }}" alt="Imagem do item {{ item.titulo }}">
+                {% else %}
+                    <div class="empty-inline">Envie uma imagem do item para habilitar a analise.</div>
+                {% endif %}
+            </div>
+
+            <div class="ai-stack">
+                {% if item.has_ai_analysis %}
+                    <div class="ai-summary-card">
+                        <p class="muted-kicker">Ultima analise &middot; {{ item.ai_analysis_provider|upper }} {{ item.ai_analysis_model }}</p>
+                        {% if item.ai_last_analyzed_at %}
+                            <p>{{ item.ai_last_analyzed_at|date:"d/m/Y H:i" }}</p>
+                        {% endif %}
+                        {% if item.ai_suggested_title %}
+                            <strong>Sugestao de titulo: {{ item.ai_suggested_title }}</strong>
+                        {% endif %}
+                        {% if item.ai_suggested_category %}
+                            <p>Categoria sugerida: {{ item.ai_suggested_category }}</p>
+                        {% endif %}
+                        {% if item.ai_summary %}
+                            <p>{{ item.ai_summary }}</p>
+                        {% endif %}
+                        {% if item.ai_confidence %}
+                            <span class="tag">Confianca: {{ item.ai_confidence }}</span>
+                        {% endif %}
+                        {% if item.ai_quantity_hint %}
+                            <span class="tag">Quantidade sugerida: {{ item.ai_quantity_hint }}</span>
+                        {% endif %}
+                        {% if item.ai_scene_type_display %}
+                            <span class="tag">Cena: {{ item.ai_scene_type_display }}</span>
+                        {% endif %}
+                    </div>
+
+                    {% if item.ai_should_create_multiple_records %}
+                        <div class="note-block note-block-strong">
+                            <strong>Cena com mais de um registro potencial</strong>
+                            <p>
+                                A IA entendeu que esta foto parece reunir grupos diferentes de evidencia.
+                                O preenchimento automatico fica mais conservador, e o ideal e revisar os
+                                grupos abaixo para criar registros separados quando fizer sentido.
+                            </p>
+                        </div>
+                    {% endif %}
+
+                    {% if item.ai_visible_attributes %}
+                        <div>
+                            <p class="muted-kicker">Atributos visiveis</p>
+                            <dl class="detail-list">
+                                {% for attr in item.ai_visible_attributes %}
+                                    <div>
+                                        <dt>{{ attr.label }}</dt>
+                                        <dd>{{ attr.value }}</dd>
+                                    </div>
+                                {% endfor %}
+                            </dl>
+                        </div>
+                    {% endif %}
+
+                    {% if item.ai_detected_items %}
+                        <div>
+                            <p class="muted-kicker">Grupos detectados na foto</p>
+                            <div class="detected-item-grid">
+                                {% for detected in item.ai_detected_items %}
+                                    <article class="detected-item-card">
+                                        <p class="muted-kicker">{{ detected.position_reference }}</p>
+                                        <strong>{{ detected.suggested_title }}</strong>
+                                        <p>{{ detected.summary }}</p>
+                                        <div class="tag-cloud">
+                                            {% if detected.suggested_category %}
+                                                <span class="tag">Categoria: {{ detected.suggested_category }}</span>
+                                            {% endif %}
+                                            {% if detected.suggested_quantity %}
+                                                <span class="tag">Qtd. sugerida: {{ detected.suggested_quantity }}</span>
+                                            {% endif %}
+                                            {% if detected.confidence %}
+                                                <span class="tag">Confianca: {{ detected.confidence }}</span>
+                                            {% endif %}
+                                        </div>
+                                        {% if detected.should_be_separate_record %}
+                                            <p class="detected-item-meta">Sugestao: criar registro proprio para este grupo.</p>
+                                        {% endif %}
+                                    </article>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {% if item.ai_field_suggestions %}
+                        <div>
+                            <p class="muted-kicker">Campos sugeridos para preenchimento automatico</p>
+                            <dl class="detail-list">
+                                {% for attr in item.ai_field_suggestions %}
+                                    <div>
+                                        <dt>{{ attr.label }} <span class="inline-key">({{ attr.key }})</span></dt>
+                                        <dd>{{ attr.value }}</dd>
+                                    </div>
+                                {% endfor %}
+                            </dl>
+                        </div>
+                    {% endif %}
+
+                    {% if item.ai_officer_review_notes %}
+                        <div>
+                            <p class="muted-kicker">Pontos para revisao do agente</p>
+                            <ul class="ai-list">
+                                {% for note in item.ai_officer_review_notes %}
+                                    <li>{{ note }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    {% if item.ai_missing_information %}
+                        <div>
+                            <p class="muted-kicker">Informacoes nao visiveis na foto</p>
+                            <ul class="ai-list">
+                                {% for missing in item.ai_missing_information %}
+                                    <li>{{ missing }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="mini-note">
+                        Ainda nao existe resultado de IA para este item. Salve a imagem e rode a
+                        analise para gerar o primeiro preenchimento assistido.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}

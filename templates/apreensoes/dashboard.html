@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}Operações | EPS{% endblock %}
+{% block title %}Operacoes | EPS{% endblock %}
 
 {% block content %}
 <section class="hero-card">
     <div>
-        <p class="eyebrow">Inventário mobile-first para diligências</p>
-        <h1>Operações</h1>
+        <p class="eyebrow">Inventario digital para diligencias</p>
+        <h1>Operacoes de apreensao</h1>
         <p class="lead">
-            Cadastre a operação, monte a equipe, registre os itens apreendidos e gere o PDF final
-            para subir no sistema oficial.
+            O MVP ja cobre o fluxo base de operacao, equipe, itens e PDF. A partir de agora,
+            a frente de IA entra como apoio ao preenchimento com analise de imagem e revisao humana.
         </p>
     </div>
-    <a class="button button-primary" href="{% url 'apreensoes:operation_create' %}">Nova operação</a>
+    <a class="button button-primary" href="{% url 'apreensoes:operation_create' %}">Nova operacao</a>
 </section>
 
 <section class="stats-grid">
@@ -30,10 +30,66 @@
     </article>
 </section>
 
+<section class="concept-grid">
+    <article class="concept-card concept-card-primary">
+        <p class="eyebrow">Direcao de tecnologia</p>
+        <h2>Web mobile-first</h2>
+        <p>
+            A melhor direcao para este projeto, neste momento, e uma aplicacao web responsiva,
+            preparada para uso em celular e com caminho futuro para PWA.
+        </p>
+        <div class="tag-cloud">
+            <span class="tag">Django</span>
+            <span class="tag">Responsivo</span>
+            <span class="tag">Celular em campo</span>
+        </div>
+    </article>
+    <article class="concept-card concept-card-accent">
+        <p class="eyebrow">Modulo IA</p>
+        <h2>Imagem como assistente de preenchimento</h2>
+        <p>
+            A IA nao fecha o item sozinha. Ela sugere titulo, categoria, atributos visiveis e
+            pendencias para conferencia do agente antes do encerramento.
+        </p>
+        <div class="tag-cloud">
+            <span class="tag">Gemini API</span>
+            <span class="tag">Sugestao estruturada</span>
+            <span class="tag">Revisao humana</span>
+        </div>
+    </article>
+</section>
+
 <section class="panel">
     <div class="panel-heading">
-        <h2>Lista de operações</h2>
-        <p>Abra uma operação para lançar equipe, categorias e itens apreendidos.</p>
+        <div>
+            <p class="eyebrow">Esboco inicial do front</p>
+            <h2>Fluxo pensado para o usuario em campo</h2>
+        </div>
+    </div>
+    <div class="roadmap-strip">
+        <article class="roadmap-step">
+            <strong>1. Preparar operacao</strong>
+            <p>Criar operacao, definir alvo, local e equipe.</p>
+        </article>
+        <article class="roadmap-step">
+            <strong>2. Registrar item</strong>
+            <p>Selecionar categoria, anexar imagem e preencher o minimo necessario.</p>
+        </article>
+        <article class="roadmap-step">
+            <strong>3. Pedir apoio da IA</strong>
+            <p>Analisar a foto para sugerir campos visiveis e pontos de atencao.</p>
+        </article>
+        <article class="roadmap-step">
+            <strong>4. Revisar e fechar</strong>
+            <p>Validar manualmente os dados antes de gerar o PDF final.</p>
+        </article>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-heading">
+        <h2>Lista de operacoes</h2>
+        <p>Abra uma operacao para lancar equipe, categorias, imagens e itens apreendidos.</p>
     </div>
 
     {% if operations %}
@@ -53,7 +109,7 @@
                             <dd>{{ operation.departamento }}</dd>
                         </div>
                         <div>
-                            <dt>Responsável</dt>
+                            <dt>Responsavel</dt>
                             <dd>{{ operation.responsavel }}</dd>
                         </div>
                         <div>
@@ -70,15 +126,15 @@
                         <span>{{ operation.total_itens }} item(ns)</span>
                     </div>
                     <a class="button button-secondary" href="{% url 'apreensoes:operation_detail' operation.pk %}">
-                        Abrir operação
+                        Abrir operacao
                     </a>
                 </article>
             {% endfor %}
         </div>
     {% else %}
         <div class="empty-state">
-            <h3>Nenhuma operação cadastrada</h3>
-            <p>Comece criando a primeira operação para estruturar o inventário da apreensão.</p>
+            <h3>Nenhuma operacao cadastrada</h3>
+            <p>Comece criando a primeira operacao para estruturar o inventario da apreensao.</p>
             <a class="button button-primary" href="{% url 'apreensoes:operation_create' %}">Criar agora</a>
         </div>
     {% endif %}

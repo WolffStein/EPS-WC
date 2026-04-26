@@ -27,6 +27,8 @@ urlpatterns = [
         name="category_field_create",
     ),
     path("operacoes/<int:operation_pk>/itens/novo/", views.item_create, name="item_create"),
+    path("itens/<int:pk>/analisar-imagem/", views.item_analyze_image, name="item_analyze_image"),
+    path("itens/<int:pk>/aplicar-ia/", views.item_apply_ai, name="item_apply_ai"),
     path("itens/<int:pk>/editar/", views.item_update, name="item_update"),
     path("itens/<int:pk>/remover/", views.item_delete, name="item_delete"),
 ]

@@ -81,11 +81,15 @@ class SeizedItemForm(forms.ModelForm):
             "titulo",
             "quantidade",
             "descricao",
+            "evidence_image",
             "local_encontrado",
             "estado",
         ]
         widgets = {
             "descricao": forms.Textarea(attrs={"rows": 4}),
+            "evidence_image": forms.ClearableFileInput(
+                attrs={"accept": ".jpg,.jpeg,.png,.webp,.gif"}
+            ),
         }
 
     def __init__(self, *args, operation: Operation | None = None, **kwargs):
@@ -154,7 +158,7 @@ class SeizedItemForm(forms.ModelForm):
                 choices=[
                     ("", "Selecione"),
                     ("true", "Sim"),
-                    ("false", "Não"),
+                    ("false", "Nao"),
                 ],
                 coerce=lambda value: value == "true" if value else None,
                 empty_value=None,
