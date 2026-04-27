@@ -60,12 +60,11 @@ Quatro evidências obrigatórias:
 | **Link do GitHub Actions** | Inserido `https://github.com/WolffStein/EPS-WC/actions` no relatório |
 | **Evidência de `poetry env info`** | Log real colado na seção 1 do relatório (Python 3.13.3 / win32) |
 | **Vulnerability Safety (pip 25.3)** | pip atualizado para 26.0.1 — `0 vulnerabilities reported` |
+| **Migração para org `rmchaimalm`** | Organização provisionada e remoto `upstream` configurado |
 
 ### ❌ Pendente
 
-| Item | Problema | Ação Necessária |
-|------|----------|-----------------|
-| **Migração para org `rmchaimalm`** | Aguardando provisionamento da organização pelo professor | Configurar `git remote add upstream <url>` quando liberado |
+Nenhuma pendência.
 
 ---
 
@@ -75,7 +74,7 @@ Quatro evidências obrigatórias:
 Setup Ambiente         [#####] 5/5  — Docker + Poetry + Python 3.12 + Django 5+
 Esteira CI/CD          [####.] 4/5  — workflow criado; aguardando run confirmado no GitHub
 Relatório              [####.] 4/4  — completo; link de Actions aponta para aba Actions do repo
-Migração org           [.....] 0/1  — aguardando professor
+Migração org           [#####] 1/1  — remoto upstream configurado
 ```
 
 ---
