@@ -218,6 +218,10 @@ img {
     color: var(--primary-strong);
 }
 
+.topnav .help-link {
+    margin-left: auto;
+}
+
 .page-content {
     display: flex;
     flex-direction: column;
@@ -1062,4 +1066,92 @@ img {
     .brand-block {
         align-items: flex-start;
     }
+}
+
+/* --- HELP PAGE & ACCORDION --- */
+
+
+.help-search-input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.help-search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(18, 63, 87, 0.1);
+}
+
+.help-accordion-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.help-accordion-item {
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    overflow: hidden;
+}
+
+.help-accordion-item summary {
+    padding: 16px;
+    font-weight: 700;
+    color: var(--primary-strong);
+    cursor: pointer;
+    list-style: none; /* Hide default arrow */
+    position: relative;
+    user-select: none;
+}
+
+/* Custom arrow */
+.help-accordion-item summary::after {
+    content: '+';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    color: var(--muted);
+    transition: transform 0.2s;
+}
+
+.help-accordion-item[open] summary::after {
+    content: '-';
+    transform: translateY(-50%);
+}
+
+.help-accordion-item summary::-webkit-details-marker {
+    display: none;
+}
+
+.help-accordion-item[open] summary {
+    border-bottom: 1px solid var(--line);
+    background: rgba(18, 63, 87, 0.03);
+}
+
+.accordion-content {
+    padding: 16px;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.accordion-content a {
+    color: var(--info);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-color: rgba(38, 93, 155, 0.3);
+    text-underline-offset: 3px;
+    transition: text-decoration-color 0.2s;
+}
+
+.accordion-content a:hover {
+    text-decoration-color: var(--info);
 }

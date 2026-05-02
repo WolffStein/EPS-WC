@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Ajuda | EPS{% endblock %}
+
+{% block content %}
+<section class="panel" style="margin-bottom: 24px;">
+    <div class="panel-heading" style="align-items: center;">
+        <div>
+            <h2>Central de Ajuda</h2>
+            <p>Busque ou selecione um tópico abaixo para encontrar instruções sobre como usar o Assistente de Apreensão.</p>
+        </div>
+    </div>
+
+    <input type="text" id="helpSearch" placeholder="Busque sua dúvida aqui..." class="help-search-input" onkeyup="filterHelp()">
+    
+    <div class="help-accordion-list" style="margin-top: 16px;">
+        <details class="help-accordion-item" name="help-accordion">
+            <summary>Como criar uma Operação?</summary>
+            <div class="accordion-content">
+                <p>Para começar a registrar os itens apreendidos, você precisa primeiro criar a ocorrência (operação). Vá para a página inicial clicando no topo da tela ou acesse <a href="{% url 'apreensoes:operation_create' %}">Nova Operação</a>. Preencha os dados básicos como o nome, a data e o local.</p>
+            </div>
+        </details>
+        
+        <details class="help-accordion-item" name="help-accordion">
+            <summary>Como adicionar pessoas (responsáveis) à operação?</summary>
+            <div class="accordion-content">
+                <p>Entre na operação desejada clicando no nome dela no painel principal (<a href="{% url 'apreensoes:dashboard' %}">Operações</a>). Dentro da operação, clique no botão <strong>'Adicionar Responsável'</strong> para registrar a equipe associada.</p>
+            </div>
+        </details>
+        
+        <details class="help-accordion-item" name="help-accordion">
+            <summary>Como cadastrar um novo item usando Inteligência Artificial?</summary>
+            <div class="accordion-content">
+                <p>Dentro de uma operação, clique em <strong>'Adicionar Item Apreendido'</strong>. No formulário que abrir, faça o upload da foto nítida do objeto e salve. Em seguida, na tela do item salvo, clique no botão brilhante <strong>'Analisar Imagem'</strong>. O sistema preencherá marca, modelo e detalhes do item sozinho, restando a você apenas clicar em <strong>'Aplicar Sugestões'</strong>.</p>
+            </div>
+        </details>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function filterHelp() {
+        const input = document.getElementById('helpSearch').value.toLowerCase();
+        const items = document.querySelectorAll('.help-accordion-item');
+        
+        items.forEach(item => {
+            const title = item.querySelector('summary').innerText.toLowerCase();
+            const content = item.querySelector('.accordion-content').innerText.toLowerCase();
+            if (title.includes(input) || content.includes(input)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+</script>
+{% endblock %}

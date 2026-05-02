@@ -6,6 +6,7 @@ app_name = "apreensoes"
 
 urlpatterns = [
     path("", views.dashboard, name="dashboard"),
+    path("ajuda/", views.help_view, name="help"),
     path("operacoes/nova/", views.operation_create, name="operation_create"),
     path("operacoes/<int:pk>/", views.operation_detail, name="operation_detail"),
     path("operacoes/<int:pk>/editar/", views.operation_update, name="operation_update"),

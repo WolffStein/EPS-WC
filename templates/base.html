@@ -25,9 +25,10 @@
                 <span class="status-chip status-chip-quiet">Modo campo</span>
             </div>
             <nav class="topnav">
-                <a href="{% url 'apreensoes:dashboard' %}">Operacoes</a>
+                <a href="{% url 'apreensoes:dashboard' %}">Operações</a>
                 <a href="{% url 'apreensoes:category_list' %}">Categorias</a>
-                <a href="/admin/">Admin</a>
+                <a href="/admin/" class="admin-link">Admin</a>
+                <a href="{% url 'apreensoes:help' %}" class="help-link">?</a>
             </nav>
         </header>
 

@@ -378,3 +378,6 @@ def operation_pdf(request: HttpRequest, pk: int) -> HttpResponse:
         f'attachment; filename="auto-apreensao-{operation.codigo.lower()}.pdf"'
     )
     return response
+
+def help_view(request: HttpRequest) -> HttpResponse:
+    return render(request, "apreensoes/help.html")

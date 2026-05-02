@@ -3,173 +3,32 @@
 {% block title %}{{ operation.codigo }} | EPS{% endblock %}
 
 {% block content %}
-<section class="detail-hero hero-command">
-    <div class="hero-copy">
+<section class="panel" style="margin-bottom: 24px;">
+    <div class="panel-heading" style="align-items: center;">
         <div>
-            <p class="eyebrow">Operacao {{ operation.codigo }}</p>
-            <h1>{{ operation.nome }}</h1>
-            <p class="lead">{{ operation.departamento }} &middot; {{ operation.data_operacao|date:"d/m/Y" }}</p>
+            <h2>Operação: {{ operation.nome }}</h2>
+            <p>{{ operation.departamento }} &middot; Data: {{ operation.data_operacao|date:"d/m/Y" }}</p>
         </div>
-        <div class="tag-cloud">
-            <span class="tag">Local: {{ operation.local_apreensao }}</span>
-            <span class="tag">Suspeito: {{ operation.suspeito_nome }}</span>
-            {% if operation.cidade_uf %}
-                <span class="tag">Cidade: {{ operation.cidade_uf }}</span>
-            {% endif %}
-        </div>
-    </div>
-    <div class="hero-side">
-        <div class="signal-board">
-            <p class="muted-kicker">Painel tatico</p>
-            <div class="signal-row">
-                <strong>Status atual</strong>
-                <p>{{ operation.get_status_display }}. A operacao concentra equipe, itens e fechamento em PDF.</p>
-            </div>
-            <div class="signal-row">
-                <strong>Proximo foco</strong>
-                <p>
-                    {% if operation.status == "planejada" %}
-                        Iniciar a apreensao e preparar o registro dos primeiros itens.
-                    {% elif operation.status == "em_andamento" %}
-                        Revisar equipe, imagens e itens antes do encerramento.
-                    {% else %}
-                        Operacao encerrada. O foco agora e consulta e exportacao do registro final.
-                    {% endif %}
-                </p>
-            </div>
-        </div>
-        <div class="hero-actions">
-            <span class="pill pill-{{ operation.status }}">{{ operation.get_status_display }}</span>
-            <a class="button button-secondary" href="{% url 'apreensoes:operation_update' operation.pk %}">Editar</a>
-            <a class="button button-primary" href="{% url 'apreensoes:operation_pdf' operation.pk %}">Baixar PDF</a>
-        </div>
-    </div>
-</section>
-
-<section class="stats-grid stats-grid-compact">
-    <article class="stat-card">
-        <span>Integrantes</span>
-        <strong>{{ operation.total_integrantes }}</strong>
-    </article>
-    <article class="stat-card">
-        <span>Itens</span>
-        <strong>{{ operation.total_itens }}</strong>
-    </article>
-    <article class="stat-card">
-        <span>Categorias ativas</span>
-        <strong>{{ categories|length }}</strong>
-    </article>
-    <article class="stat-card">
-        <span>Status</span>
-        <strong>{{ operation.get_status_display }}</strong>
-    </article>
-</section>
-
-<section class="split-grid split-grid-wide">
-    <article class="panel">
-        <div class="panel-heading">
-            <div>
-                <p class="eyebrow">Resumo operacional</p>
-                <h2>Dados da diligencia</h2>
-            </div>
-        </div>
-        <dl class="info-list compact">
-            <div>
-                <dt>Chefe responsavel</dt>
-                <dd>{{ operation.responsavel }}</dd>
-            </div>
-            <div>
-                <dt>Local</dt>
-                <dd>{{ operation.local_apreensao }}</dd>
-            </div>
-            <div>
-                <dt>Cidade / UF</dt>
-                <dd>{{ operation.cidade_uf|default:"-" }}</dd>
-            </div>
-            <div>
-                <dt>Suspeito</dt>
-                <dd>{{ operation.suspeito_nome }}</dd>
-            </div>
-            <div>
-                <dt>Documento</dt>
-                <dd>{{ operation.suspeito_documento|default:"-" }}</dd>
-            </div>
-            <div>
-                <dt>Endereco do suspeito</dt>
-                <dd>{{ operation.suspeito_endereco|default:"-" }}</dd>
-            </div>
-        </dl>
-
         <div class="action-row">
-            {% if operation.status == "planejada" %}
-                <form method="post" action="{% url 'apreensoes:operation_start' operation.pk %}">
-                    {% csrf_token %}
-                    <button class="button button-secondary" type="submit">Iniciar apreensao</button>
-                </form>
-            {% endif %}
-
-            {% if operation.status != "encerrada" %}
-                <form method="post" action="{% url 'apreensoes:operation_close' operation.pk %}">
-                    {% csrf_token %}
-                    <button class="button button-danger" type="submit">Encerrar operacao</button>
-                </form>
-            {% endif %}
+            <span class="pill pill-{{ operation.status }}">{{ operation.get_status_display }}</span>
+            <a class="button button-secondary" href="{% url 'apreensoes:operation_update' operation.pk %}">Editar Operação</a>
+            <a class="button button-primary" href="{% url 'apreensoes:operation_pdf' operation.pk %}">Gerar PDF</a>
         </div>
-
-        {% if operation.observacoes %}
-            <div class="note-block">
-                <strong>Observacoes</strong>
-                <p>{{ operation.observacoes }}</p>
-            </div>
-        {% endif %}
-    </article>
-
-    <article class="panel panel-dark">
-        <div class="panel-heading">
-            <div>
-                <p class="eyebrow">Painel de comando</p>
-                <h2>O que fazer agora</h2>
-            </div>
-        </div>
-        <ol class="command-list">
-            {% if operation.status == "planejada" %}
-                <li>Validar os dados da operacao antes de iniciar a apreensao.</li>
-                <li>Completar a equipe e preparar as categorias que serao usadas no local.</li>
-                <li>Comecar a registrar itens assim que a diligencia estiver em andamento.</li>
-            {% elif operation.status == "em_andamento" %}
-                <li>Registrar os itens com o minimo de dados obrigatorios para manter o ritmo em campo.</li>
-                <li>Anexar imagem quando fizer sentido para acelerar o preenchimento assistido.</li>
-                <li>Revisar itens antes de encerrar a operacao e gerar o PDF.</li>
-            {% else %}
-                <li>Conferir o PDF final e usar os dados salvos como trilha de consulta.</li>
-                <li>Reabrir o planejamento em uma nova operacao quando surgir outra diligencia.</li>
-            {% endif %}
-        </ol>
-        <div class="tag-cloud">
-            <span class="tag tag-light">Uso em celular</span>
-            <span class="tag tag-light">Conferencia manual</span>
-            <span class="tag tag-light">Historico em banco</span>
-        </div>
-    </article>
-</section>
-
-<section class="panel panel-highlight">
-    <div class="panel-heading">
+    </div>
+    <dl class="info-list compact">
         <div>
-            <p class="eyebrow">Visao do produto</p>
-            <h2>IA como copiloto de preenchimento</h2>
-            <p class="lead">
-                Nesta etapa, a tecnologia mais segura para o projeto continua sendo web mobile-first.
-                A IA entra para acelerar o preenchimento a partir da foto, sempre com revisao humana.
-            </p>
+            <dt>Chefe Responsável</dt>
+            <dd>{{ operation.responsavel }}</dd>
         </div>
-    </div>
-    <div class="tag-cloud">
-        <span class="tag">Fluxo responsivo</span>
-        <span class="tag">Uso em celular</span>
-        <span class="tag">Analise visual</span>
-        <span class="tag">Conferencia manual</span>
-    </div>
+        <div>
+            <dt>Local</dt>
+            <dd>{{ operation.local_apreensao }}</dd>
+        </div>
+        <div>
+            <dt>Suspeito</dt>
+            <dd>{{ operation.suspeito_nome }}</dd>
+        </div>
+    </dl>
 </section>
 
 <section class="panel">
@@ -201,13 +60,13 @@
 </section>
 
 <section class="panel">
-    <div class="panel-heading">
+    <div class="panel-heading" style="align-items: center;">
         <div>
-            <p class="eyebrow">Equipe de campo</p>
-            <h2>Integrantes da operacao</h2>
+            <h2>Membros da Equipe</h2>
+            <p>Quem está participando desta operação?</p>
         </div>
         {% if operation.status != "encerrada" %}
-            <a class="button button-secondary" href="{% url 'apreensoes:team_member_create' operation.pk %}">Adicionar integrante</a>
+            <a class="button button-secondary" href="{% url 'apreensoes:team_member_create' operation.pk %}">Adicionar Responsável</a>
         {% endif %}
     </div>
 
@@ -235,13 +94,13 @@
 </section>
 
 <section class="panel">
-    <div class="panel-heading">
+    <div class="panel-heading" style="align-items: center;">
         <div>
-            <p class="eyebrow">Inventario da diligencia</p>
-            <h2>Itens apreendidos</h2>
+            <h2>Itens Apreendidos</h2>
+            <p>Registre aqui todos os objetos recolhidos na operação.</p>
         </div>
         {% if operation.status != "encerrada" %}
-            <a class="button button-primary" href="{% url 'apreensoes:item_create' operation.pk %}">Registrar item</a>
+            <a class="button button-primary" href="{% url 'apreensoes:item_create' operation.pk %}">Adicionar Item Apreendido</a>
         {% endif %}
     </div>
 
@@ -330,17 +189,17 @@
                     </div>
 
                     {% if operation.status != "encerrada" %}
-                        <div class="action-row">
-                            <a class="button button-secondary button-small" href="{% url 'apreensoes:item_update' item.pk %}">Editar</a>
-                            {% if item.evidence_image %}
+                        <div class="action-row" style="margin-top: 16px; border-top: 1px solid var(--line); padding-top: 16px;">
+                            {% if item.evidence_image and not item.has_ai_analysis %}
                                 <form method="post" action="{% url 'apreensoes:item_analyze_image' item.pk %}">
                                     {% csrf_token %}
-                                    <button class="button button-primary button-small" type="submit">Analisar imagem</button>
+                                    <button class="button button-primary" type="submit" style="background: linear-gradient(135deg, #15645d 0%, #0d423e 100%);">🪄 Analisar Imagem com IA</button>
                                 </form>
                             {% endif %}
+                            <a class="button button-secondary button-small" href="{% url 'apreensoes:item_update' item.pk %}">Editar Item</a>
                             <form method="post" action="{% url 'apreensoes:item_delete' item.pk %}">
                                 {% csrf_token %}
-                                <button class="button button-ghost button-small" type="submit">Remover</button>
+                                <button class="button button-danger button-small" type="submit">Excluir</button>
                             </form>
                         </div>
                     {% endif %}

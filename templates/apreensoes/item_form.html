@@ -3,48 +3,20 @@
 {% block title %}Itens | EPS{% endblock %}
 
 {% block content %}
-<section class="detail-hero hero-command">
-    <div class="hero-copy">
+<section class="panel" style="margin-bottom: 24px;">
+    <div class="panel-heading">
         <div>
-            <p class="eyebrow">{{ operation.codigo }}</p>
-            <h1>{% if mode == "update" %}Editar item apreendido{% else %}Registrar item apreendido{% endif %}</h1>
-            <p class="lead">
-                O fluxo agora aceita imagem do item e leitura assistida por IA. O agente continua
-                revisando tudo antes de confirmar o registro.
-            </p>
-        </div>
-        <div class="tag-cloud">
-            <span class="tag">Web mobile-first</span>
-            <span class="tag">Upload de imagem</span>
-            <span class="tag">Revisao humana</span>
-        </div>
-    </div>
-    <div class="hero-side">
-        <div class="signal-board">
-            <p class="muted-kicker">Fluxo do registro</p>
-            <div class="signal-row">
-                <strong>1. Dados base</strong>
-                <p>Identifique categoria, titulo, quantidade e local encontrado.</p>
-            </div>
-            <div class="signal-row">
-                <strong>2. Evidencia</strong>
-                <p>Anexe uma foto clara quando ela puder acelerar o preenchimento.</p>
-            </div>
-            <div class="signal-row">
-                <strong>3. Revisao</strong>
-                <p>Use a sugestao da IA como rascunho, nunca como decisao final.</p>
-            </div>
+            <h2>{% if mode == "update" %}Editar Item Apreendido{% else %}Registrar Item Apreendido{% endif %}</h2>
+            <p>Preencha as informações do item recolhido na operação <strong>{{ operation.codigo }}</strong>.</p>
         </div>
     </div>
 </section>
 
 {% with selected_category=form.selected_category %}
-<section class="split-grid split-grid-wide form-shell">
-    <article class="panel">
-        <div class="panel-heading">
+<section class="panel">
+    <div class="panel-heading">
             <div>
-                <p class="eyebrow">Registro operacional</p>
-                <h2>Dados do item</h2>
+                <h1 style="font-size: 2rem; margin-bottom: 8px;">Dados do item</h1>
                 <p>Estruture o registro em blocos curtos para funcionar bem em campo, no celular.</p>
             </div>
         </div>
@@ -65,7 +37,7 @@
                     <div class="section-divider">
                         <span class="section-index">01</span>
                         <div>
-                            <strong>Dados base do registro</strong>
+                            <h3 style="margin-bottom: 4px; font-size: 1.1rem;">Dados base do registro</h3>
                             <p>Categoria, identificacao do item, descricao essencial e anexo da evidencia.</p>
                         </div>
                     </div>
@@ -94,7 +66,7 @@
                         <div class="section-divider">
                             <span class="section-index">02</span>
                             <div>
-                                <strong>Campos da categoria {{ selected_category.nome }}</strong>
+                                <h3 style="margin-bottom: 4px; font-size: 1.1rem;">Campos da categoria {{ selected_category.nome }}</h3>
                                 <p>O formulario se adapta ao tipo de item escolhido para reduzir campos desnecessarios.</p>
                             </div>
                         </div>
@@ -156,95 +128,27 @@
                 </button>
             </div>
         </form>
-    </article>
 
-    <aside class="side-stack">
-        <article class="panel">
-            <div class="panel-heading">
-                <div>
-                    <p class="eyebrow">Checklist de captura</p>
-                    <h2>Foto util para o agente</h2>
-                </div>
-            </div>
-            <ul class="ai-list">
-                <li>Evite reflexos, desfoque e excesso de objetos fora do contexto.</li>
-                <li>Se o item tiver numero, marca ou detalhe importante, aproxime a camera.</li>
-                <li>Quando a cena tiver arma, droga e municao juntas, considere fotos separadas.</li>
-            </ul>
-        </article>
-
-        <article class="panel panel-highlight">
-            <div class="panel-heading">
-                <div>
-                    <p class="eyebrow">Leitura assistida</p>
-                    <h2>O que a IA tenta preencher</h2>
-                </div>
-            </div>
-            <p class="lead">
-                Titulo, categoria sugerida, atributos visiveis, quantidade aparente e alertas sobre
-                informacoes que seguem dependentes de conferencia humana.
-            </p>
-            <div class="tag-cloud">
-                <span class="tag">Sem automacao cega</span>
-                <span class="tag">Cena mista detectavel</span>
-                <span class="tag">Revisao obrigatoria</span>
-            </div>
-        </article>
-
-        {% if mode == "update" and item %}
-            <article class="panel">
-                <div class="panel-heading">
-                    <div>
-                        <p class="eyebrow">Estado atual</p>
-                        <h2>{{ item.titulo }}</h2>
-                    </div>
-                </div>
-                <dl class="detail-list">
-                    <div>
-                        <dt>Categoria</dt>
-                        <dd>{{ item.category.nome }}</dd>
-                    </div>
-                    <div>
-                        <dt>Quantidade</dt>
-                        <dd>{{ item.quantidade }}</dd>
-                    </div>
-                    <div>
-                        <dt>Imagem</dt>
-                        <dd>{% if item.evidence_image %}Enviada{% else %}Pendente{% endif %}</dd>
-                    </div>
-                </dl>
-                {% if item.evidence_image %}
-                    <div class="evidence-frame evidence-frame-compact">
-                        <img class="evidence-thumb" src="{{ item.evidence_image.url }}" alt="Imagem do item {{ item.titulo }}">
-                    </div>
-                {% endif %}
-            </article>
-        {% endif %}
-    </aside>
 </section>
 {% endwith %}
 
 {% if mode == "update" and item %}
-    <section class="panel panel-highlight">
-        <div class="panel-heading">
+    <section class="panel panel-highlight" style="margin-top: 24px;">
+        <div class="panel-heading" style="align-items: center;">
             <div>
-                <p class="eyebrow">Assistente visual</p>
-                <h2>Analise de imagem com IA</h2>
-                <p class="lead">
-                    Esta etapa tenta antecipar o preenchimento a partir da foto, mas o agente ainda
-                    precisa revisar tudo antes de confirmar o item.
-                </p>
+                <h2>🪄 Análise da Imagem com IA</h2>
+                <p>O assistente virtual ajuda a preencher dados a partir da foto. Verifique os dados abaixo antes de aplicar o preenchimento.</p>
             </div>
             {% if item.evidence_image %}
                 <div class="hero-actions">
                     <form method="post" action="{% url 'apreensoes:item_analyze_image' item.pk %}">
                         {% csrf_token %}
-                        <button class="button button-primary" type="submit">Rodar analise com IA</button>
+                        <button class="button button-primary" type="submit" style="background: linear-gradient(135deg, #15645d 0%, #0d423e 100%);">Analisar Novamente</button>
                     </form>
                     {% if item.has_ai_analysis %}
                         <form method="post" action="{% url 'apreensoes:item_apply_ai' item.pk %}">
                             {% csrf_token %}
-                            <button class="button button-secondary" type="submit">Aplicar preenchimento automatico</button>
+                            <button class="button button-secondary" type="submit">Preencher Formulário Automaticamente</button>
                         </form>
                     {% endif %}
                 </div>
