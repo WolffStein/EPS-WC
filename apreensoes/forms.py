@@ -88,7 +88,10 @@ class SeizedItemForm(forms.ModelForm):
         widgets = {
             "descricao": forms.Textarea(attrs={"rows": 4}),
             "evidence_image": forms.ClearableFileInput(
-                attrs={"accept": ".jpg,.jpeg,.png,.webp,.gif"}
+                attrs={
+                    "accept": "image/*",
+                    "capture": "environment",
+                }
             ),
         }
 
