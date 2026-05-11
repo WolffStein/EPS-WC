@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Entrar | EPS{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+    <article class="auth-panel">
+        <div class="panel-heading">
+            <div>
+                <p class="eyebrow">Acesso ao sistema</p>
+                <h1>Entrar no Assistente de Apreensao</h1>
+                <p class="lead">
+                    Use seu usuario e senha para acessar operacoes, categorias, itens e o fluxo de IA.
+                </p>
+            </div>
+        </div>
+
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            {% if next_url %}
+                <input type="hidden" name="next" value="{{ next_url }}">
+            {% endif %}
+
+            {% for field in form %}
+                <div class="form-field">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <small class="error-text">{{ error }}</small>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            {% if form.non_field_errors %}
+                <div class="note-block note-block-strong">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="form-actions">
+                <button class="button button-primary" type="submit">Entrar</button>
+            </div>
+        </form>
+    </article>
+
+    <aside class="side-stack">
+        <article class="panel panel-highlight">
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">Como acessar</p>
+                    <h2>Primeiro acesso do time</h2>
+                </div>
+            </div>
+            <ul class="ai-list">
+                <li>Crie um usuario pelo Django Admin ou via comando `createsuperuser`.</li>
+                <li>Use a mesma conta para entrar no sistema e, se quiser, acessar o admin.</li>
+                <li>Depois do login, todas as telas do MVP ficam protegidas.</li>
+            </ul>
+        </article>
+    </aside>
+</section>
+{% endblock %}

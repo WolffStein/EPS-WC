@@ -1,7 +1,11 @@
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from .ai import (
@@ -16,12 +20,58 @@ from .forms import (
     EvidenceCategoryForm,
     OperationForm,
     SeizedItemForm,
+    SignInForm,
     TeamMemberForm,
 )
 from .models import EvidenceCategory, Operation, SeizedItem, TeamMember
 from .pdf import build_operation_pdf
 
 
+app_login_required = login_required(login_url="apreensoes:login")
+
+
+def _resolve_post_login_redirect(request: HttpRequest) -> str:
+    next_url = request.POST.get("next") or request.GET.get("next")
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return next_url
+    return reverse("apreensoes:dashboard")
+
+
+def login_view(request: HttpRequest) -> HttpResponse:
+    if request.user.is_authenticated:
+        return redirect("apreensoes:dashboard")
+
+    if request.method == "POST":
+        form = SignInForm(request, data=request.POST)
+        if form.is_valid():
+            login(request, form.get_user())
+            messages.success(request, "Login realizado com sucesso.")
+            return redirect(_resolve_post_login_redirect(request))
+    else:
+        form = SignInForm(request)
+
+    return render(
+        request,
+        "registration/login.html",
+        {
+            "form": form,
+            "next_url": request.POST.get("next") or request.GET.get("next", ""),
+        },
+    )
+
+
+@require_POST
+def logout_view(request: HttpRequest) -> HttpResponse:
+    logout(request)
+    messages.success(request, "Sessao encerrada com sucesso.")
+    return redirect("apreensoes:login")
+
+
+@app_login_required
 def dashboard(request: HttpRequest) -> HttpResponse:
     operations = Operation.objects.prefetch_related("team_members", "items").all()
     context = {
@@ -35,6 +85,7 @@ def dashboard(request: HttpRequest) -> HttpResponse:
     return render(request, "apreensoes/dashboard.html", context)
 
 
+@app_login_required
 def operation_create(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = OperationForm(request.POST)
@@ -52,6 +103,7 @@ def operation_create(request: HttpRequest) -> HttpResponse:
     )
 
 
+@app_login_required
 def operation_update(request: HttpRequest, pk: int) -> HttpResponse:
     operation = get_object_or_404(Operation, pk=pk)
 
@@ -75,6 +127,7 @@ def operation_update(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
+@app_login_required
 def operation_detail(request: HttpRequest, pk: int) -> HttpResponse:
     operation = get_object_or_404(
         Operation.objects.prefetch_related(
@@ -95,6 +148,7 @@ def operation_detail(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
+@app_login_required
 @require_POST
 def operation_start(request: HttpRequest, pk: int) -> HttpResponse:
     operation = get_object_or_404(Operation, pk=pk)
@@ -103,6 +157,7 @@ def operation_start(request: HttpRequest, pk: int) -> HttpResponse:
     return redirect("apreensoes:operation_detail", pk=operation.pk)
 
 
+@app_login_required
 @require_POST
 def operation_close(request: HttpRequest, pk: int) -> HttpResponse:
     operation = get_object_or_404(Operation, pk=pk)
@@ -111,6 +166,7 @@ def operation_close(request: HttpRequest, pk: int) -> HttpResponse:
     return redirect("apreensoes:operation_detail", pk=operation.pk)
 
 
+@app_login_required
 def team_member_create(request: HttpRequest, operation_pk: int) -> HttpResponse:
     operation = get_object_or_404(Operation, pk=operation_pk)
 
@@ -136,6 +192,7 @@ def team_member_create(request: HttpRequest, operation_pk: int) -> HttpResponse:
     )
 
 
+@app_login_required
 @require_POST
 def team_member_delete(request: HttpRequest, pk: int) -> HttpResponse:
     member = get_object_or_404(TeamMember.objects.select_related("operation"), pk=pk)
@@ -150,6 +207,7 @@ def team_member_delete(request: HttpRequest, pk: int) -> HttpResponse:
     return redirect("apreensoes:operation_detail", pk=operation_pk)
 
 
+@app_login_required
 def category_list(request: HttpRequest) -> HttpResponse:
     categories = EvidenceCategory.objects.prefetch_related("field_definitions").all()
     return render(
@@ -159,6 +217,7 @@ def category_list(request: HttpRequest) -> HttpResponse:
     )
 
 
+@app_login_required
 def category_create(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = EvidenceCategoryForm(request.POST)
@@ -179,6 +238,7 @@ def category_create(request: HttpRequest) -> HttpResponse:
     )
 
 
+@app_login_required
 def category_detail(request: HttpRequest, pk: int) -> HttpResponse:
     category = get_object_or_404(
         EvidenceCategory.objects.prefetch_related("field_definitions"),
@@ -191,6 +251,7 @@ def category_detail(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
+@app_login_required
 def category_field_create(request: HttpRequest, category_pk: int) -> HttpResponse:
     category = get_object_or_404(EvidenceCategory, pk=category_pk)
 
@@ -212,6 +273,7 @@ def category_field_create(request: HttpRequest, category_pk: int) -> HttpRespons
     )
 
 
+@app_login_required
 def item_create(request: HttpRequest, operation_pk: int) -> HttpResponse:
     operation = get_object_or_404(Operation, pk=operation_pk)
 
@@ -241,6 +303,7 @@ def item_create(request: HttpRequest, operation_pk: int) -> HttpResponse:
     )
 
 
+@app_login_required
 def item_update(request: HttpRequest, pk: int) -> HttpResponse:
     item = get_object_or_404(
         SeizedItem.objects.select_related("operation", "category"),
@@ -268,6 +331,7 @@ def item_update(request: HttpRequest, pk: int) -> HttpResponse:
     )
 
 
+@app_login_required
 @require_POST
 def item_analyze_image(request: HttpRequest, pk: int) -> HttpResponse:
     item = get_object_or_404(
@@ -313,6 +377,7 @@ def item_analyze_image(request: HttpRequest, pk: int) -> HttpResponse:
     return redirect("apreensoes:item_update", pk=item.pk)
 
 
+@app_login_required
 @require_POST
 def item_apply_ai(request: HttpRequest, pk: int) -> HttpResponse:
     item = get_object_or_404(
@@ -349,6 +414,7 @@ def item_apply_ai(request: HttpRequest, pk: int) -> HttpResponse:
     return redirect("apreensoes:item_update", pk=item.pk)
 
 
+@app_login_required
 @require_POST
 def item_delete(request: HttpRequest, pk: int) -> HttpResponse:
     item = get_object_or_404(SeizedItem.objects.select_related("operation"), pk=pk)
@@ -363,6 +429,7 @@ def item_delete(request: HttpRequest, pk: int) -> HttpResponse:
     return redirect("apreensoes:operation_detail", pk=operation_pk)
 
 
+@app_login_required
 def operation_pdf(request: HttpRequest, pk: int) -> HttpResponse:
     operation = get_object_or_404(
         Operation.objects.prefetch_related(
@@ -379,5 +446,7 @@ def operation_pdf(request: HttpRequest, pk: int) -> HttpResponse:
     )
     return response
 
+
+@app_login_required
 def help_view(request: HttpRequest) -> HttpResponse:
     return render(request, "apreensoes/help.html")

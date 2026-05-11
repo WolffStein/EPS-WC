@@ -19,6 +19,7 @@ MVP mobile-first para apoio a operacoes de apreensao da PCDF.
 - upload de imagem por item apreendido
 - analise assistida por IA com Gemini para sugerir preenchimento a partir da foto
 - foco inicial de teste visual em armas e drogas com preenchimento automatico assistido
+- login para acesso as telas do sistema
 - persistencia em banco SQLite ou PostgreSQL
 - encerramento da operacao com geracao de PDF
 - interface web responsiva pensada para uso em celular
@@ -40,6 +41,7 @@ Para entender a linha de estruturacao do MVP, as decisoes de arquitetura e o est
 projeto, consulte:
 
 - [docs/RASTREABILIDADE_TECNICA_MVP.md](docs/RASTREABILIDADE_TECNICA_MVP.md)
+- [docs/LEVANTAMENTO_REQUISITOS_MVP.md](docs/LEVANTAMENTO_REQUISITOS_MVP.md)
 
 ## Como rodar localmente
 
@@ -55,18 +57,24 @@ poetry install
 poetry run python manage.py migrate
 ```
 
-3. Suba o servidor:
+3. Crie um usuario para entrar no sistema:
+
+```bash
+poetry run python manage.py createsuperuser
+```
+
+4. Suba o servidor:
 
 ```bash
 poetry run python manage.py runserver
 ```
 
-4. Acesse:
+5. Acesse:
 
 - aplicacao: `http://127.0.0.1:8000/`
 - admin: `http://127.0.0.1:8000/admin/`
 
-5. Para testar a analise de imagem com IA:
+6. Para testar a analise de imagem com IA:
 
 - preencha `GEMINI_API_KEY` no arquivo `.env`
 - opcionalmente ajuste `GEMINI_VISION_MODEL` se quiser trocar o modelo

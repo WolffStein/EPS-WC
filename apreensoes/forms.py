@@ -4,6 +4,7 @@ from datetime import date
 from decimal import Decimal
 
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm
 
 from .models import CategoryField, EvidenceCategory, Operation, SeizedItem, TeamMember
 
@@ -14,6 +15,29 @@ class DateInput(forms.DateInput):
 
 class TimeInput(forms.TimeInput):
     input_type = "time"
+
+
+class SignInForm(AuthenticationForm):
+    username = forms.CharField(
+        label="Usuario",
+        widget=forms.TextInput(
+            attrs={
+                "autofocus": True,
+                "autocomplete": "username",
+                "placeholder": "Digite seu usuario",
+            }
+        ),
+    )
+    password = forms.CharField(
+        label="Senha",
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                "autocomplete": "current-password",
+                "placeholder": "Digite sua senha",
+            }
+        ),
+    )
 
 
 class OperationForm(forms.ModelForm):

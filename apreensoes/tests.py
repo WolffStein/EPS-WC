@@ -3,6 +3,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 import httpx
+from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -18,6 +19,11 @@ TEST_MEDIA_ROOT = Path(__file__).resolve().parent.parent / "media" / "test_uploa
 @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
 class AppFlowTests(TestCase):
     def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username="agente",
+            password="senha-segura-123",
+        )
+        self.client.force_login(self.user)
         self.category = EvidenceCategory.objects.get(slug="eletronicos")
         self.operation = Operation.objects.create(
             codigo="EPS-001",
@@ -30,10 +36,34 @@ class AppFlowTests(TestCase):
             suspeito_nome="Fulano de Tal",
         )
 
+    def test_dashboard_requires_authentication(self):
+        self.client.logout()
+
+        response = self.client.get(reverse("apreensoes:dashboard"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("apreensoes:login"), response.url)
+
+    def test_login_view_authenticates_user(self):
+        self.client.logout()
+
+        response = self.client.post(
+            reverse("apreensoes:login"),
+            data={
+                "username": "agente",
+                "password": "senha-segura-123",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("apreensoes:dashboard"))
+        follow_response = self.client.get(reverse("apreensoes:dashboard"))
+        self.assertEqual(follow_response.status_code, 200)
+
     def test_dashboard_renders(self):
         response = self.client.get(reverse("apreensoes:dashboard"))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Operacoes de apreensao")
+        self.assertContains(response, "Planejadas")
         self.assertContains(response, "EPS-001")
 
     def test_dynamic_item_form_saves_extra_data(self):
