@@ -6,18 +6,19 @@
 <section class="panel" style="margin-bottom: 24px;">
     <div class="panel-heading" style="align-items: center;">
         <div>
-            <h2>Operação: {{ operation.nome }}</h2>
-            <p>{{ operation.departamento }} &middot; Data: {{ operation.data_operacao|date:"d/m/Y" }}</p>
+            <p class="eyebrow">Operacao em campo</p>
+            <h2>Operacao: {{ operation.nome }}</h2>
+            <p>{{ operation.departamento }} . Data: {{ operation.data_operacao|date:"d/m/Y" }}</p>
         </div>
         <div class="action-row">
             <span class="pill pill-{{ operation.status }}">{{ operation.get_status_display }}</span>
-            <a class="button button-secondary" href="{% url 'apreensoes:operation_update' operation.pk %}">Editar Operação</a>
+            <a class="button button-secondary" href="{% url 'apreensoes:operation_update' operation.pk %}">Editar operacao</a>
             <a class="button button-primary" href="{% url 'apreensoes:operation_pdf' operation.pk %}">Gerar PDF</a>
         </div>
     </div>
     <dl class="info-list compact">
         <div>
-            <dt>Chefe Responsável</dt>
+            <dt>Chefe responsavel</dt>
             <dd>{{ operation.responsavel }}</dd>
         </div>
         <div>
@@ -28,14 +29,59 @@
             <dt>Suspeito</dt>
             <dd>{{ operation.suspeito_nome }}</dd>
         </div>
+        <div>
+            <dt>Itens registrados</dt>
+            <dd>{{ operation.total_itens }}</dd>
+        </div>
     </dl>
+</section>
+
+<section class="panel panel-highlight">
+    <div class="panel-heading">
+        <div>
+            <p class="eyebrow">Entrada principal</p>
+            <h2>Registro rapido de evidencia</h2>
+            <p>O policial escolhe a categoria, tira a foto e salva. O preenchimento detalhado fica para revisao assistida.</p>
+        </div>
+        {% if operation.status != "encerrada" %}
+            <a class="button button-primary" href="{% url 'apreensoes:item_create' operation.pk %}">Abrir captura livre</a>
+        {% endif %}
+    </div>
+
+    {% if not ai_ready %}
+        <div class="note-block note-block-strong" style="margin-bottom: 18px;">
+            <strong>IA ainda nao esta ativa neste servidor</strong>
+            <p>
+                O fluxo de captura rapida ja esta preparado, mas o autopreenchimento por imagem depende da
+                configuracao da Gemini API no ambiente em execucao. Sem isso, a foto entra no registro, porem
+                a identificacao automatica nao roda.
+            </p>
+        </div>
+    {% endif %}
+
+    <div class="quick-grid">
+        {% for category in categories %}
+            {% if category.slug == "armas" or category.slug == "drogas" or category.slug == "municoes" or category.slug == "outros" %}
+                <article class="quick-card quick-card-capture">
+                    <p class="eyebrow">Categoria pronta</p>
+                    <strong>{{ category.nome }}</strong>
+                    <p>{{ category.descricao|default:"Cadastro rapido com imagem e revisao posterior." }}</p>
+                    {% if operation.status != "encerrada" %}
+                        <a class="button button-primary" href="{% url 'apreensoes:item_create' operation.pk %}?category={{ category.pk }}">
+                            Capturar {{ category.nome|lower }}
+                        </a>
+                    {% endif %}
+                </article>
+            {% endif %}
+        {% endfor %}
+    </div>
 </section>
 
 <section class="panel">
     <div class="panel-heading">
         <div>
             <p class="eyebrow">Modelagem operacional</p>
-            <h2>Categorias disponiveis</h2>
+            <h2>Todas as categorias disponiveis</h2>
         </div>
         <a class="button button-secondary" href="{% url 'apreensoes:category_list' %}">Gerenciar categorias</a>
     </div>
@@ -62,11 +108,11 @@
 <section class="panel">
     <div class="panel-heading" style="align-items: center;">
         <div>
-            <h2>Membros da Equipe</h2>
-            <p>Quem está participando desta operação?</p>
+            <h2>Membros da equipe</h2>
+            <p>Quem esta participando desta operacao?</p>
         </div>
         {% if operation.status != "encerrada" %}
-            <a class="button button-secondary" href="{% url 'apreensoes:team_member_create' operation.pk %}">Adicionar Responsável</a>
+            <a class="button button-secondary" href="{% url 'apreensoes:team_member_create' operation.pk %}">Adicionar responsavel</a>
         {% endif %}
     </div>
 
@@ -76,7 +122,7 @@
                 <div class="list-card">
                     <div>
                         <strong>{{ member.nome }}</strong>
-                        <p>{{ member.cargo }} &middot; {{ member.matricula|default:"sem matricula" }}</p>
+                        <p>{{ member.cargo }} . {{ member.matricula|default:"sem matricula" }}</p>
                         <p>{{ member.contato|default:"sem contato" }}</p>
                     </div>
                     {% if operation.status != "encerrada" %}
@@ -96,11 +142,11 @@
 <section class="panel">
     <div class="panel-heading" style="align-items: center;">
         <div>
-            <h2>Itens Apreendidos</h2>
-            <p>Registre aqui todos os objetos recolhidos na operação.</p>
+            <h2>Itens apreendidos</h2>
+            <p>Os registros abaixo formam o inventario final e alimentam o PDF da operacao.</p>
         </div>
         {% if operation.status != "encerrada" %}
-            <a class="button button-primary" href="{% url 'apreensoes:item_create' operation.pk %}">Adicionar Item Apreendido</a>
+            <a class="button button-primary" href="{% url 'apreensoes:item_create' operation.pk %}">Adicionar item apreendido</a>
         {% endif %}
     </div>
 
@@ -117,7 +163,7 @@
                     </div>
                     <p class="item-meta">
                         {{ item.local_encontrado|default:"Local nao informado" }}
-                        {% if item.estado %}&middot; {{ item.estado }}{% endif %}
+                        {% if item.estado %}. {{ item.estado }}{% endif %}
                     </p>
 
                     <div class="tag-cloud">
@@ -157,7 +203,7 @@
 
                             {% if item.has_ai_analysis %}
                                 <div class="ai-summary-card">
-                                    <p class="muted-kicker">Sugestao da IA &middot; {{ item.ai_analysis_provider|upper }} {{ item.ai_analysis_model }}</p>
+                                    <p class="muted-kicker">Sugestao da IA . {{ item.ai_analysis_provider|upper }} {{ item.ai_analysis_model }}</p>
                                     <strong>{{ item.ai_suggested_title|default:item.titulo }}</strong>
                                     {% if item.ai_summary %}
                                         <p>{{ item.ai_summary }}</p>
@@ -182,7 +228,7 @@
                                 {% endif %}
                             {% elif item.evidence_image %}
                                 <div class="mini-note">
-                                    A imagem foi enviada. Falta rodar a analise de IA para gerar sugestoes.
+                                    A captura foi salva com imagem. Abra o item para revisar o que a IA sugeriu.
                                 </div>
                             {% endif %}
                         </div>
@@ -193,10 +239,10 @@
                             {% if item.evidence_image and not item.has_ai_analysis %}
                                 <form method="post" action="{% url 'apreensoes:item_analyze_image' item.pk %}">
                                     {% csrf_token %}
-                                    <button class="button button-primary" type="submit" style="background: linear-gradient(135deg, #15645d 0%, #0d423e 100%);">🪄 Analisar Imagem com IA</button>
+                                    <button class="button button-primary" type="submit" style="background: linear-gradient(135deg, #15645d 0%, #0d423e 100%);">Analisar imagem com IA</button>
                                 </form>
                             {% endif %}
-                            <a class="button button-secondary button-small" href="{% url 'apreensoes:item_update' item.pk %}">Editar Item</a>
+                            <a class="button button-secondary button-small" href="{% url 'apreensoes:item_update' item.pk %}">Revisar item</a>
                             <form method="post" action="{% url 'apreensoes:item_delete' item.pk %}">
                                 {% csrf_token %}
                                 <button class="button button-danger button-small" type="submit">Excluir</button>

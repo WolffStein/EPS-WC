@@ -97,6 +97,14 @@ class CategoryFieldForm(forms.ModelForm):
 
 class SeizedItemForm(forms.ModelForm):
     DYNAMIC_PREFIX = "campo_"
+    use_required_attribute = False
+    DEFAULT_TITLES = {
+        "armas": "Arma apreendida",
+        "drogas": "Droga apreendida",
+        "municoes": "Municoes apreendidas",
+        "veiculos": "Veiculo apreendido",
+        "eletronicos": "Eletronico apreendido",
+    }
 
     class Meta:
         model = SeizedItem
@@ -124,7 +132,36 @@ class SeizedItemForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields["category"].queryset = EvidenceCategory.objects.filter(active=True).order_by("nome")
+        self.fields["titulo"].required = False
+        self.fields["quantidade"].required = False
+        self.fields["titulo"].widget.attrs.update(
+            {
+                "placeholder": "Deixe em branco para a IA sugerir um titulo apos salvar.",
+            }
+        )
+        self.fields["quantidade"].widget.attrs.update(
+            {
+                "placeholder": "1",
+                "inputmode": "numeric",
+            }
+        )
+        self.fields["descricao"].widget.attrs.update(
+            {
+                "placeholder": "Opcional na captura rapida. A IA tenta resumir a foto apos salvar.",
+            }
+        )
+        self.fields["local_encontrado"].widget.attrs.update(
+            {
+                "placeholder": "Ex.: sala, porta-malas, quarto, gaveta",
+            }
+        )
+        self.fields["estado"].widget.attrs.update(
+            {
+                "placeholder": "Ex.: integro, desmontado, embalado",
+            }
+        )
         self.dynamic_field_map: dict[str, CategoryField] = {}
+        self.required_dynamic_field_names: set[str] = set()
 
         selected_category = self._resolve_category()
         self.selected_category = selected_category
@@ -135,6 +172,11 @@ class SeizedItemForm(forms.ModelForm):
                 self.dynamic_field_map[field_name] = field_definition
                 self.fields[field_name] = self._build_dynamic_form_field(field_definition)
                 self.fields[field_name].initial = self._initial_extra_value(field_definition)
+                if field_definition.required:
+                    self.required_dynamic_field_names.add(field_name)
+
+            for field_name in self.dynamic_field_map:
+                self.fields[field_name].required = False
 
     def _resolve_category(self) -> EvidenceCategory | None:
         category_id = (
@@ -211,11 +253,50 @@ class SeizedItemForm(forms.ModelForm):
 
         return value
 
+    def _allows_ai_assisted_completion(self) -> bool:
+        uploaded_image = bool(self.files.get("evidence_image"))
+        existing_image = bool(getattr(self.instance, "evidence_image", None))
+        return uploaded_image or existing_image
+
+    def _default_title_for_category(self) -> str:
+        if self.selected_category:
+            return self.DEFAULT_TITLES.get(
+                self.selected_category.slug,
+                f"{self.selected_category.nome.rstrip('s')} apreendido"
+                if self.selected_category.nome
+                else "Item apreendido",
+            )
+        return "Item apreendido"
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if self._allows_ai_assisted_completion():
+            return cleaned_data
+
+        for field_name in self.required_dynamic_field_names:
+            value = cleaned_data.get(field_name)
+            if value not in ("", None):
+                continue
+
+            label = self.fields[field_name].label
+            self.add_error(
+                field_name,
+                f"{label} e obrigatorio quando o registro for salvo sem imagem para analise.",
+            )
+
+        return cleaned_data
+
     def save(self, commit: bool = True) -> SeizedItem:
         instance = super().save(commit=False)
 
         if self.operation is not None:
             instance.operation = self.operation
+
+        if not str(instance.titulo).strip():
+            instance.titulo = self._default_title_for_category()
+        if not instance.quantidade:
+            instance.quantidade = 1
 
         payload: dict[str, object] = {}
         for field_name, field_definition in self.dynamic_field_map.items():

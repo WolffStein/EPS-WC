@@ -1,4 +1,10 @@
-:root {
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>EPS-DEMO | EPS</title>
+    <style>:root {
     --bg: #ebe7de;
     --bg-deep: #e0d9cd;
     --surface: rgba(255, 255, 255, 0.82);
@@ -776,67 +782,6 @@ img {
     margin-top: 24px;
 }
 
-.quick-capture-shell {
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.85fr);
-    gap: 18px;
-    align-items: start;
-}
-
-.quick-capture-copy,
-.quick-capture-aside {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.quick-card-capture {
-    background:
-        linear-gradient(180deg, rgba(18, 63, 87, 0.08), rgba(255, 255, 255, 0.98)),
-        white;
-}
-
-.review-shell {
-    margin-top: 24px;
-    border: 1px solid rgba(18, 63, 87, 0.12);
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.72);
-    box-shadow: var(--shadow-soft);
-    overflow: hidden;
-}
-
-.review-shell summary {
-    cursor: pointer;
-    list-style: none;
-    padding: 18px 20px;
-    font-weight: 700;
-    color: var(--primary-strong);
-    position: relative;
-    background: rgba(18, 63, 87, 0.05);
-}
-
-.review-shell summary::-webkit-details-marker {
-    display: none;
-}
-
-.review-shell summary::after {
-    content: "+";
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted);
-    font-size: 1.1rem;
-}
-
-.review-shell[open] summary::after {
-    content: "-";
-}
-
-.review-shell > section {
-    padding: 0 18px 18px;
-}
-
 .form-section:first-of-type {
     margin-top: 0;
 }
@@ -1127,10 +1072,6 @@ img {
     .auth-shell {
         grid-template-columns: 1fr;
     }
-
-    .quick-capture-shell {
-        grid-template-columns: 1fr;
-    }
 }
 
 @media (max-width: 860px) {
@@ -1257,3 +1198,291 @@ img {
 .accordion-content a:hover {
     text-decoration-color: var(--info);
 }
+</style>
+</head>
+<body style="padding: 24px;">
+    <div class="page-noise" aria-hidden="true"></div>
+    <div class="app-shell">
+        <header class="topbar">
+            <div class="brand-block">
+                <div class="brand-mark">EPS</div>
+                <div>
+                    <p class="eyebrow">PCDF . MVP operacional</p>
+                    
+                        <a class="brand" href="/">Assistente de Apreensao</a>
+                    
+                    <p class="brand-subtitle">
+                        Inventario operacional com captura de evidencia, revisao humana e geracao de PDF.
+                    </p>
+                </div>
+            </div>
+            <div class="topbar-meta">
+                
+                    <span class="status-chip">Acesso autenticado</span>
+                    <span class="status-chip status-chip-quiet">demo</span>
+                
+            </div>
+            <nav class="topnav">
+                
+                    <a href="/">Operacoes</a>
+                    <a href="/categorias/">Categorias</a>
+                    <a href="/ajuda/" class="help-link">Ajuda</a>
+                    <a href="/admin/" class="admin-link">Admin</a>
+                    <form method="post" action="/sair/" class="inline-form">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="gg9T7tAQnqhW2iwuAf7BAo2fG0o85x9NmX4Uvjgx26hP1XM4QRqVQvdfuqeOxGNE">
+                        <button class="button button-ghost button-small" type="submit">Sair</button>
+                    </form>
+                
+            </nav>
+        </header>
+
+        <main class="page-content">
+            
+
+            
+<section class="panel" style="margin-bottom: 24px;">
+    <div class="panel-heading" style="align-items: center;">
+        <div>
+            <h2>Operação: Operacao Demonstracao</h2>
+            <p>Delegacia de Testes &middot; Data: 10/05/2026</p>
+        </div>
+        <div class="action-row">
+            <span class="pill pill-planejada">Planejada</span>
+            <a class="button button-secondary" href="/operacoes/3/editar/">Editar Operação</a>
+            <a class="button button-primary" href="/operacoes/3/pdf/">Gerar PDF</a>
+        </div>
+    </div>
+    <dl class="info-list compact">
+        <div>
+            <dt>Chefe Responsável</dt>
+            <dd>Delegado Demo</dd>
+        </div>
+        <div>
+            <dt>Local</dt>
+            <dd>Rua Exemplo, 100</dd>
+        </div>
+        <div>
+            <dt>Suspeito</dt>
+            <dd>Fulano Demo</dd>
+        </div>
+    </dl>
+</section>
+
+<section class="panel">
+    <div class="panel-heading">
+        <div>
+            <p class="eyebrow">Modelagem operacional</p>
+            <h2>Categorias disponiveis</h2>
+        </div>
+        <a class="button button-secondary" href="/categorias/">Gerenciar categorias</a>
+    </div>
+    <div class="category-chip-grid">
+        
+            <article class="category-chip-card">
+                <div>
+                    <strong>Armas</strong>
+                    <p>Armas de fogo, armas brancas, municoes e acessorios relacionados.</p>
+                </div>
+                <div class="meta-row">
+                    <span>7 campo(s)</span>
+                    
+                        <a class="button button-ghost button-small" href="/operacoes/3/itens/novo/?category=6">
+                            Lancar item
+                        </a>
+                    
+                </div>
+            </article>
+        
+            <article class="category-chip-card">
+                <div>
+                    <strong>Documentos</strong>
+                    <p>Papéis, contratos, identidades, cartões e documentos diversos.</p>
+                </div>
+                <div class="meta-row">
+                    <span>4 campo(s)</span>
+                    
+                        <a class="button button-ghost button-small" href="/operacoes/3/itens/novo/?category=3">
+                            Lancar item
+                        </a>
+                    
+                </div>
+            </article>
+        
+            <article class="category-chip-card">
+                <div>
+                    <strong>Drogas</strong>
+                    <p>Substancias entorpecentes, porcoes, tabletes, frascos e embalagens.</p>
+                </div>
+                <div class="meta-row">
+                    <span>7 campo(s)</span>
+                    
+                        <a class="button button-ghost button-small" href="/operacoes/3/itens/novo/?category=7">
+                            Lancar item
+                        </a>
+                    
+                </div>
+            </article>
+        
+            <article class="category-chip-card">
+                <div>
+                    <strong>Eletrônicos</strong>
+                    <p>Celulares, notebooks, computadores, tablets e equipamentos correlatos.</p>
+                </div>
+                <div class="meta-row">
+                    <span>5 campo(s)</span>
+                    
+                        <a class="button button-ghost button-small" href="/operacoes/3/itens/novo/?category=1">
+                            Lancar item
+                        </a>
+                    
+                </div>
+            </article>
+        
+            <article class="category-chip-card">
+                <div>
+                    <strong>Municoes</strong>
+                    <p>Cartuchos, projeteis, estojos e outros itens relacionados a municoes.</p>
+                </div>
+                <div class="meta-row">
+                    <span>5 campo(s)</span>
+                    
+                        <a class="button button-ghost button-small" href="/operacoes/3/itens/novo/?category=8">
+                            Lancar item
+                        </a>
+                    
+                </div>
+            </article>
+        
+            <article class="category-chip-card">
+                <div>
+                    <strong>Mídias de armazenamento</strong>
+                    <p>Pendrives, HDs, SSDs, cartões de memória e dispositivos similares.</p>
+                </div>
+                <div class="meta-row">
+                    <span>4 campo(s)</span>
+                    
+                        <a class="button button-ghost button-small" href="/operacoes/3/itens/novo/?category=4">
+                            Lancar item
+                        </a>
+                    
+                </div>
+            </article>
+        
+            <article class="category-chip-card">
+                <div>
+                    <strong>Outros</strong>
+                    <p>Categoria coringa para itens que não se encaixam nas demais.</p>
+                </div>
+                <div class="meta-row">
+                    <span>0 campo(s)</span>
+                    
+                        <a class="button button-ghost button-small" href="/operacoes/3/itens/novo/?category=5">
+                            Lancar item
+                        </a>
+                    
+                </div>
+            </article>
+        
+            <article class="category-chip-card">
+                <div>
+                    <strong>Veículos</strong>
+                    <p>Carros, motos, caminhões e outros veículos automotores.</p>
+                </div>
+                <div class="meta-row">
+                    <span>6 campo(s)</span>
+                    
+                        <a class="button button-ghost button-small" href="/operacoes/3/itens/novo/?category=2">
+                            Lancar item
+                        </a>
+                    
+                </div>
+            </article>
+        
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-heading" style="align-items: center;">
+        <div>
+            <h2>Membros da Equipe</h2>
+            <p>Quem está participando desta operação?</p>
+        </div>
+        
+            <a class="button button-secondary" href="/operacoes/3/equipe/novo/">Adicionar Responsável</a>
+        
+    </div>
+
+    
+        <div class="empty-inline">Nenhum integrante cadastrado ainda.</div>
+    
+</section>
+
+<section class="panel">
+    <div class="panel-heading" style="align-items: center;">
+        <div>
+            <h2>Itens Apreendidos</h2>
+            <p>Registre aqui todos os objetos recolhidos na operação.</p>
+        </div>
+        
+            <a class="button button-primary" href="/operacoes/3/itens/novo/">Adicionar Item Apreendido</a>
+        
+    </div>
+
+    
+        <div class="list-stack">
+            
+                <article class="item-card">
+                    <div class="item-card-header">
+                        <div>
+                            <p class="eyebrow">Armas</p>
+                            <h3>Item de demonstracao</h3>
+                        </div>
+                        <span class="pill pill-neutral">Qtd. 1</span>
+                    </div>
+                    <p class="item-meta">
+                        Sala principal
+                        &middot; Integro
+                    </p>
+
+                    <div class="tag-cloud">
+                        
+                        
+                        
+                    </div>
+
+                    <div class="item-media-grid">
+                        
+
+                        <div class="ai-stack">
+                            
+                                <p>Registro de exemplo para visualizar a interface.</p>
+                            
+
+                            
+
+                            
+                        </div>
+                    </div>
+
+                    
+                        <div class="action-row" style="margin-top: 16px; border-top: 1px solid var(--line); padding-top: 16px;">
+                            
+                            <a class="button button-secondary button-small" href="/itens/3/editar/">Editar Item</a>
+                            <form method="post" action="/itens/3/remover/">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="gg9T7tAQnqhW2iwuAf7BAo2fG0o85x9NmX4Uvjgx26hP1XM4QRqVQvdfuqeOxGNE">
+                                <button class="button button-danger button-small" type="submit">Excluir</button>
+                            </form>
+                        </div>
+                    
+                </article>
+            
+        </div>
+    
+</section>
+
+        </main>
+    </div>
+
+    
+</body>
+</html>

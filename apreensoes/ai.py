@@ -223,6 +223,153 @@ def _has_meaningful_ai_value(value: object) -> bool:
     }
 
 
+def _normalize_ai_text(value: object) -> str:
+    return " ".join(str(value).strip().lower().split())
+
+
+def _has_existing_item_value(value: object) -> bool:
+    if isinstance(value, bool):
+        return True
+    return bool(str(value).strip())
+
+
+def _should_replace_primary_text(current_value: str, *, field_name: str) -> bool:
+    normalized = _normalize_ai_text(current_value)
+    if not normalized:
+        return True
+
+    generic_values = {
+        "title": {
+            "item",
+            "objeto",
+            "item apreendido",
+            "arma",
+            "arma apreendida",
+            "arma de fogo",
+            "droga",
+            "drogas",
+            "municao",
+            "municoes",
+        },
+        "description": {
+            "item apreendido",
+            "arma apreendida",
+            "droga apreendida",
+            "registro preliminar",
+            "registro inicial",
+        },
+    }
+    return normalized in generic_values.get(field_name, set())
+
+
+def _coerce_ai_boolean(value: object) -> bool | None:
+    normalized = _normalize_ai_text(value)
+    if normalized in {"sim", "true", "municiada", "municiado", "carregada", "carregado"}:
+        return True
+    if normalized in {"nao", "não", "false", "desmuniciada", "desmuniciado", "vazia", "vazio"}:
+        return False
+    return None
+
+
+def _build_visible_attribute_lookup(item: SeizedItem) -> dict[str, object]:
+    lookup: dict[str, object] = {}
+    for attribute in item.ai_visible_attributes:
+        label = _normalize_ai_text(attribute.get("label", ""))
+        value = attribute.get("value")
+        if not label or not _has_meaningful_ai_value(value):
+            continue
+        lookup[label] = str(value).strip()
+    return lookup
+
+
+def _build_weapon_field_fallbacks(item: SeizedItem) -> dict[str, object]:
+    if item.category.slug != "armas":
+        return {}
+
+    available_keys = {field.key for field in item.category.field_definitions.all()}
+    visible_attributes = _build_visible_attribute_lookup(item)
+    fallback_values: dict[str, object] = {}
+
+    label_aliases = {
+        "tipo_arma": {"tipo de arma", "tipo", "tipo aparente", "arma"},
+        "marca": {"marca", "fabricante"},
+        "modelo": {"modelo"},
+        "calibre": {"calibre"},
+        "numero_serie": {"numero de serie", "número de série", "serial", "numero serial"},
+        "acabamento_cor": {"acabamento", "cor", "acabamento / cor", "cor aparente"},
+        "municiada": {"municiada", "carregada"},
+    }
+
+    for field_key, aliases in label_aliases.items():
+        if field_key not in available_keys:
+            continue
+        for alias in aliases:
+            normalized_alias = _normalize_ai_text(alias)
+            if normalized_alias not in visible_attributes:
+                continue
+
+            raw_value = visible_attributes[normalized_alias]
+            if field_key == "municiada":
+                coerced = _coerce_ai_boolean(raw_value)
+                if coerced is not None:
+                    fallback_values[field_key] = coerced
+            else:
+                fallback_values[field_key] = raw_value
+            break
+
+    if "tipo_arma" in available_keys and "tipo_arma" not in fallback_values:
+        combined_text = _normalize_ai_text(
+            " ".join(
+                [
+                    item.ai_suggested_title,
+                    item.ai_summary,
+                    " ".join(str(note) for note in item.ai_officer_review_notes),
+                ]
+            )
+        )
+        weapon_keywords = (
+            ("pistola", "Pistola"),
+            ("revolver", "Revolver"),
+            ("revólver", "Revolver"),
+            ("espingarda", "Espingarda"),
+            ("carabina", "Carabina"),
+            ("rifle", "Rifle"),
+            ("fuzil", "Fuzil"),
+            ("submetralhadora", "Submetralhadora"),
+        )
+        for keyword, label in weapon_keywords:
+            if _normalize_ai_text(keyword) in combined_text:
+                fallback_values["tipo_arma"] = label
+                break
+
+    return fallback_values
+
+
+def _collect_ai_field_values(item: SeizedItem) -> dict[str, object]:
+    available_keys = {field.key for field in item.category.field_definitions.all()}
+    collected: dict[str, object] = {}
+
+    for suggestion in item.ai_field_suggestions:
+        key = str(suggestion.get("key", "")).strip()
+        raw_value = suggestion.get("value")
+        if key not in available_keys or not _has_meaningful_ai_value(raw_value):
+            continue
+
+        if key == "municiada":
+            coerced = _coerce_ai_boolean(raw_value)
+            if coerced is None:
+                continue
+            collected[key] = coerced
+            continue
+
+        collected[key] = str(raw_value).strip()
+
+    for key, value in _build_weapon_field_fallbacks(item).items():
+        collected.setdefault(key, value)
+
+    return collected
+
+
 def analyze_item_image(item: SeizedItem) -> dict[str, object]:
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
@@ -304,22 +451,22 @@ def apply_ai_suggestions(item: SeizedItem) -> list[str]:
     if (
         allow_primary_autofill
         and suggested_title
-        and item.titulo.strip().lower() in {"item", "objeto", "item apreendido"}
+        and _should_replace_primary_text(item.titulo, field_name="title")
     ):
         item.titulo = suggested_title
         applied.append("titulo")
 
-    if allow_primary_autofill and item.ai_summary and not item.descricao.strip():
+    if (
+        allow_primary_autofill
+        and item.ai_summary
+        and _should_replace_primary_text(item.descricao, field_name="description")
+    ):
         item.descricao = item.ai_summary
         applied.append("descricao")
 
     extra_data = dict(item.extra_data)
-    for suggestion in item.ai_field_suggestions:
-        key = str(suggestion.get("key", "")).strip()
-        value = str(suggestion.get("value", "")).strip()
-        if not key or not _has_meaningful_ai_value(value):
-            continue
-        if key not in extra_data or not str(extra_data.get(key, "")).strip():
+    for key, value in _collect_ai_field_values(item).items():
+        if key not in extra_data or not _has_existing_item_value(extra_data.get(key)):
             extra_data[key] = value
             applied.append(key)
 

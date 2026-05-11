@@ -1,3 +1,5 @@
+import os
+
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -30,6 +32,10 @@ from .pdf import build_operation_pdf
 app_login_required = login_required(login_url="apreensoes:login")
 
 
+def _ai_is_ready() -> bool:
+    return bool(os.getenv("GEMINI_API_KEY"))
+
+
 def _resolve_post_login_redirect(request: HttpRequest) -> str:
     next_url = request.POST.get("next") or request.GET.get("next")
     if next_url and url_has_allowed_host_and_scheme(
@@ -39,6 +45,50 @@ def _resolve_post_login_redirect(request: HttpRequest) -> str:
     ):
         return next_url
     return reverse("apreensoes:dashboard")
+
+
+def _persist_ai_analysis(item: SeizedItem, analysis_payload: dict[str, object]) -> None:
+    item.ai_analysis = analysis_payload
+    item.ai_analysis_provider = get_ai_provider_name()
+    item.ai_analysis_model = get_ai_vision_model()
+    item.ai_last_analyzed_at = timezone.now()
+    item.save(
+        update_fields=[
+            "ai_analysis",
+            "ai_analysis_provider",
+            "ai_analysis_model",
+            "ai_last_analyzed_at",
+            "atualizado_em",
+        ]
+    )
+
+
+def _auto_fill_item_from_image(item: SeizedItem) -> tuple[bool, str]:
+    analysis_payload = analyze_item_image(item)
+    _persist_ai_analysis(item, analysis_payload)
+    applied_fields = apply_ai_suggestions(item)
+
+    if item.ai_should_create_multiple_records:
+        if applied_fields:
+            return (
+                True,
+                "Imagem analisada e sugestoes aplicadas em parte. Revise os grupos detectados, porque a foto parece conter mais de um registro.",
+            )
+        return (
+            True,
+            "Imagem analisada. A foto parece conter mais de um registro, entao o sistema manteve o preenchimento principal mais conservador.",
+        )
+
+    if applied_fields:
+        return (
+            True,
+            "Imagem analisada e preenchimento assistido aplicado em: " + ", ".join(applied_fields) + ".",
+        )
+
+    return (
+        True,
+        "Imagem analisada, mas nao houve campos novos para preencher automaticamente.",
+    )
 
 
 def login_view(request: HttpRequest) -> HttpResponse:
@@ -144,6 +194,7 @@ def operation_detail(request: HttpRequest, pk: int) -> HttpResponse:
         {
             "operation": operation,
             "categories": categories,
+            "ai_ready": _ai_is_ready(),
         },
     )
 
@@ -291,6 +342,25 @@ def item_create(request: HttpRequest, operation_pk: int) -> HttpResponse:
             item = form.save()
             if operation.status == Operation.Status.PLANNED:
                 operation.start()
+            if item.evidence_image:
+                try:
+                    _, auto_message = _auto_fill_item_from_image(item)
+                except ImageAnalysisError as exc:
+                    messages.warning(
+                        request,
+                        "Item registrado e imagem salva, mas a analise automatica nao conseguiu concluir agora: "
+                        + str(exc),
+                    )
+                except Exception:
+                    messages.warning(
+                        request,
+                        "Item registrado e imagem salva, mas a analise automatica falhou nesta tentativa.",
+                    )
+                else:
+                    messages.success(request, auto_message)
+
+                return redirect("apreensoes:item_update", pk=item.pk)
+
             messages.success(request, "Item apreendido registrado.")
             return redirect("apreensoes:operation_detail", pk=item.operation.pk)
     else:
@@ -299,7 +369,12 @@ def item_create(request: HttpRequest, operation_pk: int) -> HttpResponse:
     return render(
         request,
         "apreensoes/item_form.html",
-        {"form": form, "operation": operation, "mode": "create"},
+        {
+            "form": form,
+            "operation": operation,
+            "mode": "create",
+            "ai_ready": _ai_is_ready(),
+        },
     )
 
 
@@ -319,6 +394,26 @@ def item_update(request: HttpRequest, pk: int) -> HttpResponse:
         form = SeizedItemForm(request.POST, request.FILES, instance=item, operation=operation)
         if form.is_valid():
             form.save()
+            uploaded_new_image = bool(request.FILES.get("evidence_image"))
+            if uploaded_new_image and item.evidence_image:
+                try:
+                    _, auto_message = _auto_fill_item_from_image(item)
+                except ImageAnalysisError as exc:
+                    messages.warning(
+                        request,
+                        "Item atualizado e imagem salva, mas a analise automatica nao conseguiu concluir agora: "
+                        + str(exc),
+                    )
+                except Exception:
+                    messages.warning(
+                        request,
+                        "Item atualizado e imagem salva, mas a analise automatica falhou nesta tentativa.",
+                    )
+                else:
+                    messages.success(request, auto_message)
+
+                return redirect("apreensoes:item_update", pk=item.pk)
+
             messages.success(request, "Item atualizado.")
             return redirect("apreensoes:operation_detail", pk=operation.pk)
     else:
@@ -327,7 +422,13 @@ def item_update(request: HttpRequest, pk: int) -> HttpResponse:
     return render(
         request,
         "apreensoes/item_form.html",
-        {"form": form, "operation": operation, "mode": "update", "item": item},
+        {
+            "form": form,
+            "operation": operation,
+            "mode": "update",
+            "item": item,
+            "ai_ready": _ai_is_ready(),
+        },
     )
 
 
@@ -353,19 +454,7 @@ def item_analyze_image(request: HttpRequest, pk: int) -> HttpResponse:
             "Nao foi possivel concluir a analise da imagem agora. Verifique a configuracao da Gemini API e tente novamente.",
         )
     else:
-        item.ai_analysis = analysis_payload
-        item.ai_analysis_provider = get_ai_provider_name()
-        item.ai_analysis_model = get_ai_vision_model()
-        item.ai_last_analyzed_at = timezone.now()
-        item.save(
-            update_fields=[
-                "ai_analysis",
-                "ai_analysis_provider",
-                "ai_analysis_model",
-                "ai_last_analyzed_at",
-                "atualizado_em",
-            ]
-        )
+        _persist_ai_analysis(item, analysis_payload)
         if item.ai_should_create_multiple_records:
             messages.success(
                 request,

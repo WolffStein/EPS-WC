@@ -84,6 +84,50 @@ class AppFlowTests(TestCase):
         item = form.save()
         self.assertEqual(item.extra_data["imei"], "356789123456789")
 
+    def test_weapon_form_with_image_allows_ai_to_fill_required_dynamic_fields(self):
+        armas = EvidenceCategory.objects.get(slug="armas")
+        form = SeizedItemForm(
+            data={
+                "category": armas.pk,
+                "titulo": "Item",
+                "quantidade": 1,
+                "descricao": "",
+                "local_encontrado": "Sala",
+                "estado": "Integro",
+            },
+            files={
+                "evidence_image": SimpleUploadedFile(
+                    "arma.jpg",
+                    b"fake-image-bytes",
+                    content_type="image/jpeg",
+                )
+            },
+            operation=self.operation,
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_weapon_form_without_image_keeps_required_dynamic_fields(self):
+        armas = EvidenceCategory.objects.get(slug="armas")
+        form = SeizedItemForm(
+            data={
+                "category": armas.pk,
+                "titulo": "Item",
+                "quantidade": 1,
+                "descricao": "",
+                "local_encontrado": "Sala",
+                "estado": "Integro",
+            },
+            operation=self.operation,
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("campo_tipo_arma", form.errors)
+        self.assertIn(
+            "obrigatorio quando o registro for salvo sem imagem",
+            form.errors["campo_tipo_arma"][0],
+        )
+
     def test_item_registration_view_accepts_image_upload(self):
         response = self.client.post(
             reverse("apreensoes:item_create", args=[self.operation.pk]),
@@ -105,6 +149,86 @@ class AppFlowTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(SeizedItem.objects.count(), 1)
         self.assertTrue(SeizedItem.objects.first().evidence_image.name.endswith(".jpg"))
+
+    def test_item_form_uses_default_title_and_quantity_for_quick_capture(self):
+        armas = EvidenceCategory.objects.get(slug="armas")
+        form = SeizedItemForm(
+            data={
+                "category": armas.pk,
+                "titulo": "",
+                "quantidade": "",
+                "descricao": "",
+                "local_encontrado": "Quarto",
+                "estado": "",
+            },
+            files={
+                "evidence_image": SimpleUploadedFile(
+                    "arma.jpg",
+                    b"fake-image-bytes",
+                    content_type="image/jpeg",
+                )
+            },
+            operation=self.operation,
+        )
+
+        self.assertTrue(form.is_valid(), form.errors)
+        item = form.save()
+        self.assertEqual(item.titulo, "Arma apreendida")
+        self.assertEqual(item.quantidade, 1)
+
+    @patch(
+        "apreensoes.views.apply_ai_suggestions",
+        return_value=["titulo", "descricao", "tipo_arma"],
+    )
+    @patch(
+        "apreensoes.views.analyze_item_image",
+        return_value={
+            "suggested_title": "Pistola preta",
+            "suggested_category": "Armas",
+            "suggested_category_slug": "armas",
+            "summary": "Arma curta aparente sobre a mesa.",
+            "confidence": "high",
+            "suggested_quantity": 1,
+            "visible_attributes": [],
+            "field_suggestions": [],
+            "officer_review_notes": [],
+            "missing_information": [],
+            "scene_type": "single_item",
+            "should_create_multiple_records": False,
+            "detected_items": [],
+        },
+    )
+    def test_item_create_with_image_runs_auto_ai_and_redirects_to_item(
+        self,
+        mocked_analysis,
+        mocked_apply,
+    ):
+        armas = EvidenceCategory.objects.get(slug="armas")
+
+        response = self.client.post(
+            reverse("apreensoes:item_create", args=[self.operation.pk]),
+            data={
+                "category": armas.pk,
+                "titulo": "Item",
+                "quantidade": 1,
+                "descricao": "",
+                "local_encontrado": "Sala",
+                "estado": "Integro",
+                "evidence_image": SimpleUploadedFile(
+                    "arma.jpg",
+                    b"fake-image-bytes",
+                    content_type="image/jpeg",
+                ),
+            },
+        )
+
+        item = SeizedItem.objects.latest("pk")
+        self.assertRedirects(response, reverse("apreensoes:item_update", args=[item.pk]))
+        item.refresh_from_db()
+        self.assertEqual(item.ai_analysis["suggested_title"], "Pistola preta")
+        self.assertEqual(item.ai_analysis_provider, "gemini")
+        mocked_analysis.assert_called_once()
+        mocked_apply.assert_called_once_with(item)
 
     @patch("apreensoes.ai.genai.Client")
     def test_analyze_item_image_embeds_small_image_inline(self, mocked_client_cls):
@@ -295,6 +419,44 @@ class AppFlowTests(TestCase):
         self.assertEqual(item.descricao, "Arma curta aparentemente do tipo pistola sobre uma superficie.")
         self.assertEqual(item.extra_data["tipo_arma"], "Pistola")
         self.assertEqual(item.extra_data["acabamento_cor"], "Preta")
+
+    def test_apply_ai_suggestions_uses_weapon_fallbacks_from_visible_attributes(self):
+        armas = EvidenceCategory.objects.get(slug="armas")
+        item = SeizedItem.objects.create(
+            operation=self.operation,
+            category=armas,
+            titulo="Arma apreendida",
+            quantidade=1,
+            descricao="",
+            ai_analysis={
+                "suggested_title": "Pistola preta",
+                "suggested_category": "Armas",
+                "suggested_category_slug": "armas",
+                "summary": "Arma curta aparente do tipo pistola com acabamento preto.",
+                "confidence": "medium",
+                "suggested_quantity": 1,
+                "visible_attributes": [
+                    {"label": "Acabamento", "value": "Preta"},
+                    {"label": "Municiada", "value": "Sim"},
+                ],
+                "field_suggestions": [],
+                "officer_review_notes": ["Confirmar numero de serie diretamente na arma."],
+                "missing_information": ["Numero de serie nao visivel na foto."],
+                "scene_type": "single_item",
+                "should_create_multiple_records": False,
+                "detected_items": [],
+            },
+        )
+
+        response = self.client.post(reverse("apreensoes:item_apply_ai", args=[item.pk]))
+        self.assertEqual(response.status_code, 302)
+
+        item.refresh_from_db()
+        self.assertEqual(item.titulo, "Pistola preta")
+        self.assertEqual(item.descricao, "Arma curta aparente do tipo pistola com acabamento preto.")
+        self.assertEqual(item.extra_data["tipo_arma"], "Pistola")
+        self.assertEqual(item.extra_data["acabamento_cor"], "Preta")
+        self.assertIs(item.extra_data["municiada"], True)
 
     def test_apply_ai_suggestions_keeps_primary_fields_conservative_for_mixed_scene(self):
         outros = EvidenceCategory.objects.get(slug="outros")

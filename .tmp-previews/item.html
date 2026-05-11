@@ -1,4 +1,10 @@
-:root {
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Itens | EPS</title>
+    <style>:root {
     --bg: #ebe7de;
     --bg-deep: #e0d9cd;
     --surface: rgba(255, 255, 255, 0.82);
@@ -776,67 +782,6 @@ img {
     margin-top: 24px;
 }
 
-.quick-capture-shell {
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.85fr);
-    gap: 18px;
-    align-items: start;
-}
-
-.quick-capture-copy,
-.quick-capture-aside {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.quick-card-capture {
-    background:
-        linear-gradient(180deg, rgba(18, 63, 87, 0.08), rgba(255, 255, 255, 0.98)),
-        white;
-}
-
-.review-shell {
-    margin-top: 24px;
-    border: 1px solid rgba(18, 63, 87, 0.12);
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.72);
-    box-shadow: var(--shadow-soft);
-    overflow: hidden;
-}
-
-.review-shell summary {
-    cursor: pointer;
-    list-style: none;
-    padding: 18px 20px;
-    font-weight: 700;
-    color: var(--primary-strong);
-    position: relative;
-    background: rgba(18, 63, 87, 0.05);
-}
-
-.review-shell summary::-webkit-details-marker {
-    display: none;
-}
-
-.review-shell summary::after {
-    content: "+";
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted);
-    font-size: 1.1rem;
-}
-
-.review-shell[open] summary::after {
-    content: "-";
-}
-
-.review-shell > section {
-    padding: 0 18px 18px;
-}
-
 .form-section:first-of-type {
     margin-top: 0;
 }
@@ -1127,10 +1072,6 @@ img {
     .auth-shell {
         grid-template-columns: 1fr;
     }
-
-    .quick-capture-shell {
-        grid-template-columns: 1fr;
-    }
 }
 
 @media (max-width: 860px) {
@@ -1257,3 +1198,364 @@ img {
 .accordion-content a:hover {
     text-decoration-color: var(--info);
 }
+</style>
+</head>
+<body style="padding: 24px;">
+    <div class="page-noise" aria-hidden="true"></div>
+    <div class="app-shell">
+        <header class="topbar">
+            <div class="brand-block">
+                <div class="brand-mark">EPS</div>
+                <div>
+                    <p class="eyebrow">PCDF . MVP operacional</p>
+                    
+                        <a class="brand" href="/">Assistente de Apreensao</a>
+                    
+                    <p class="brand-subtitle">
+                        Inventario operacional com captura de evidencia, revisao humana e geracao de PDF.
+                    </p>
+                </div>
+            </div>
+            <div class="topbar-meta">
+                
+                    <span class="status-chip">Acesso autenticado</span>
+                    <span class="status-chip status-chip-quiet">demo</span>
+                
+            </div>
+            <nav class="topnav">
+                
+                    <a href="/">Operacoes</a>
+                    <a href="/categorias/">Categorias</a>
+                    <a href="/ajuda/" class="help-link">Ajuda</a>
+                    <a href="/admin/" class="admin-link">Admin</a>
+                    <form method="post" action="/sair/" class="inline-form">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="w64IPHUEJOZb0cDCJPWkPMZBWy10QqVCCNZJdxAlouZ4ZRTcZrfE5TaBKYRGizzt">
+                        <button class="button button-ghost button-small" type="submit">Sair</button>
+                    </form>
+                
+            </nav>
+        </header>
+
+        <main class="page-content">
+            
+
+            
+<section class="panel" style="margin-bottom: 24px;">
+    <div class="panel-heading">
+        <div>
+            <h2>Editar Item Apreendido</h2>
+            <p>Preencha as informações do item recolhido na operação <strong>EPS-DEMO</strong>.</p>
+        </div>
+    </div>
+</section>
+
+
+<section class="panel">
+    <div class="panel-heading">
+            <div>
+                <h1 style="font-size: 2rem; margin-bottom: 8px;">Dados do item</h1>
+                <p>Estruture o registro em blocos curtos para funcionar bem em campo, no celular.</p>
+            </div>
+        </div>
+
+        
+
+        <form method="post" enctype="multipart/form-data" id="item-form">
+            <input type="hidden" name="csrfmiddlewaretoken" value="w64IPHUEJOZb0cDCJPWkPMZBWy10QqVCCNZJdxAlouZ4ZRTcZrfE5TaBKYRGizzt">
+
+            <section class="form-section">
+                <div class="form-section-title">
+                    <div class="section-divider">
+                        <span class="section-index">01</span>
+                        <div>
+                            <h3 style="margin-bottom: 4px; font-size: 1.1rem;">Dados base do registro</h3>
+                            <p>Categoria, identificacao do item, descricao essencial e anexo da evidencia.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    
+                        
+                            <div class="form-field ">
+                                <label for="id_category">Category</label>
+                                <select name="category" required id="id_category">
+  <option value="">---------</option>
+
+  <option value="6" selected>Armas</option>
+
+  <option value="3">Documentos</option>
+
+  <option value="7">Drogas</option>
+
+  <option value="1">Eletrônicos</option>
+
+  <option value="8">Municoes</option>
+
+  <option value="4">Mídias de armazenamento</option>
+
+  <option value="5">Outros</option>
+
+  <option value="2">Veículos</option>
+
+</select>
+                                
+                                
+                            </div>
+                        
+                    
+                        
+                            <div class="form-field ">
+                                <label for="id_titulo">Item apreendido</label>
+                                <input type="text" name="titulo" value="Item de demonstracao" maxlength="120" required id="id_titulo">
+                                
+                                
+                            </div>
+                        
+                    
+                        
+                            <div class="form-field ">
+                                <label for="id_quantidade">Quantidade</label>
+                                <input type="number" name="quantidade" value="1" min="0" required id="id_quantidade">
+                                
+                                
+                            </div>
+                        
+                    
+                        
+                            <div class="form-field form-field-full">
+                                <label for="id_descricao">Descricao</label>
+                                <textarea name="descricao" cols="40" rows="4" id="id_descricao">
+Registro de exemplo para visualizar a interface.</textarea>
+                                
+                                
+                            </div>
+                        
+                    
+                        
+                            <div class="form-field form-field-full">
+                                <label for="id_evidence_image">Imagem do item</label>
+                                <input type="file" name="evidence_image" accept="image/*" capture="environment" id="id_evidence_image">
+                                
+                                
+                            </div>
+                        
+                    
+                        
+                            <div class="form-field ">
+                                <label for="id_local_encontrado">Local encontrado</label>
+                                <input type="text" name="local_encontrado" value="Sala principal" maxlength="255" id="id_local_encontrado">
+                                
+                                
+                            </div>
+                        
+                    
+                        
+                            <div class="form-field ">
+                                <label for="id_estado">Estado / condicao</label>
+                                <input type="text" name="estado" value="Integro" maxlength="80" id="id_estado">
+                                
+                                
+                            </div>
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                        
+                    
+                </div>
+            </section>
+
+            
+                <section class="form-section">
+                    <div class="form-section-title">
+                        <div class="section-divider">
+                            <span class="section-index">02</span>
+                            <div>
+                                <h3 style="margin-bottom: 4px; font-size: 1.1rem;">Campos da categoria Armas</h3>
+                                <p>O formulario se adapta ao tipo de item escolhido para reduzir campos desnecessarios.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                        
+                            
+                                <div class="form-field form-field-full">
+                                    <label for="id_campo_tipo_arma">Tipo de arma</label>
+                                    <input type="text" name="campo_tipo_arma" placeholder="" required aria-describedby="id_campo_tipo_arma_helptext" id="id_campo_tipo_arma">
+                                    
+                                        <small>Pistola, revolver, fuzil, faca, etc.</small>
+                                    
+                                    
+                                </div>
+                            
+                        
+                            
+                                <div class="form-field form-field-full">
+                                    <label for="id_campo_marca">Marca</label>
+                                    <input type="text" name="campo_marca" placeholder="" aria-describedby="id_campo_marca_helptext" id="id_campo_marca">
+                                    
+                                        <small>Fabricante visivel ou conhecido.</small>
+                                    
+                                    
+                                </div>
+                            
+                        
+                            
+                                <div class="form-field form-field-full">
+                                    <label for="id_campo_modelo">Modelo</label>
+                                    <input type="text" name="campo_modelo" placeholder="" aria-describedby="id_campo_modelo_helptext" id="id_campo_modelo">
+                                    
+                                        <small>Modelo visivel na arma.</small>
+                                    
+                                    
+                                </div>
+                            
+                        
+                            
+                                <div class="form-field form-field-full">
+                                    <label for="id_campo_calibre">Calibre</label>
+                                    <input type="text" name="campo_calibre" placeholder="" aria-describedby="id_campo_calibre_helptext" id="id_campo_calibre">
+                                    
+                                        <small>Apenas se legivel ou claramente identificavel.</small>
+                                    
+                                    
+                                </div>
+                            
+                        
+                            
+                                <div class="form-field form-field-full">
+                                    <label for="id_campo_numero_serie">Numero de serie</label>
+                                    <input type="text" name="campo_numero_serie" placeholder="" aria-describedby="id_campo_numero_serie_helptext" id="id_campo_numero_serie">
+                                    
+                                        <small>Preencher somente se visivel.</small>
+                                    
+                                    
+                                </div>
+                            
+                        
+                            
+                                <div class="form-field form-field-full">
+                                    <label for="id_campo_acabamento_cor">Acabamento / cor</label>
+                                    <input type="text" name="campo_acabamento_cor" placeholder="" aria-describedby="id_campo_acabamento_cor_helptext" id="id_campo_acabamento_cor">
+                                    
+                                        <small>Preta, inox, madeira, etc.</small>
+                                    
+                                    
+                                </div>
+                            
+                        
+                            
+                                <div class="form-field form-field-full">
+                                    <label for="id_campo_municiada">Municiada</label>
+                                    <select name="campo_municiada" aria-describedby="id_campo_municiada_helptext" id="id_campo_municiada">
+  <option value="" selected>Selecione</option>
+
+  <option value="true">Sim</option>
+
+  <option value="false">Nao</option>
+
+</select>
+                                    
+                                        <small>Somente se a condicao for observavel.</small>
+                                    
+                                    
+                                </div>
+                            
+                        
+                    </div>
+                </section>
+            
+
+            
+                <div class="note-block">
+                    <strong>Teste de imagem para armas</strong>
+                    <p>
+                        Priorize fotos onde aparecam tipo aparente, acabamento, marca, modelo ou numero de serie.
+                        A IA nao deve inventar calibre nem serial se isso nao estiver realmente visivel.
+                    </p>
+                </div>
+            
+
+            <div class="form-actions">
+                <a class="button button-ghost" href="/operacoes/3/">Voltar</a>
+                <button class="button button-primary" type="submit">
+                    Salvar alteracoes
+                </button>
+            </div>
+        </form>
+
+</section>
+
+
+
+    <section class="panel panel-highlight" style="margin-top: 24px;">
+        <div class="panel-heading" style="align-items: center;">
+            <div>
+                <h2>🪄 Análise da Imagem com IA</h2>
+                <p>O assistente virtual ajuda a preencher dados a partir da foto. Verifique os dados abaixo antes de aplicar o preenchimento.</p>
+            </div>
+            
+        </div>
+
+        <div class="item-media-grid">
+            <div class="evidence-frame">
+                
+                    <div class="empty-inline">Envie uma imagem do item para habilitar a analise.</div>
+                
+            </div>
+
+            <div class="ai-stack">
+                
+                    <div class="mini-note">
+                        Ainda nao existe resultado de IA para este item. Salve a imagem e rode a
+                        analise para gerar o primeiro preenchimento assistido.
+                    </div>
+                
+            </div>
+        </div>
+    </section>
+
+
+        </main>
+    </div>
+
+    
+<script>
+    const categoryField = document.getElementById("id_category");
+    if (categoryField) {
+        categoryField.addEventListener("change", function () {
+            if (document.activeElement === categoryField) {
+                const url = new URL(window.location.href);
+                url.searchParams.set("category", categoryField.value);
+                window.location.href = url.toString();
+            }
+        });
+    }
+</script>
+
+</body>
+</html>

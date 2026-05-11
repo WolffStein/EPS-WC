@@ -1,4 +1,10 @@
-:root {
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Entrar | EPS</title>
+    <style>:root {
     --bg: #ebe7de;
     --bg-deep: #e0d9cd;
     --surface: rgba(255, 255, 255, 0.82);
@@ -776,67 +782,6 @@ img {
     margin-top: 24px;
 }
 
-.quick-capture-shell {
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.85fr);
-    gap: 18px;
-    align-items: start;
-}
-
-.quick-capture-copy,
-.quick-capture-aside {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.quick-card-capture {
-    background:
-        linear-gradient(180deg, rgba(18, 63, 87, 0.08), rgba(255, 255, 255, 0.98)),
-        white;
-}
-
-.review-shell {
-    margin-top: 24px;
-    border: 1px solid rgba(18, 63, 87, 0.12);
-    border-radius: 22px;
-    background: rgba(255, 255, 255, 0.72);
-    box-shadow: var(--shadow-soft);
-    overflow: hidden;
-}
-
-.review-shell summary {
-    cursor: pointer;
-    list-style: none;
-    padding: 18px 20px;
-    font-weight: 700;
-    color: var(--primary-strong);
-    position: relative;
-    background: rgba(18, 63, 87, 0.05);
-}
-
-.review-shell summary::-webkit-details-marker {
-    display: none;
-}
-
-.review-shell summary::after {
-    content: "+";
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--muted);
-    font-size: 1.1rem;
-}
-
-.review-shell[open] summary::after {
-    content: "-";
-}
-
-.review-shell > section {
-    padding: 0 18px 18px;
-}
-
 .form-section:first-of-type {
     margin-top: 0;
 }
@@ -1127,10 +1072,6 @@ img {
     .auth-shell {
         grid-template-columns: 1fr;
     }
-
-    .quick-capture-shell {
-        grid-template-columns: 1fr;
-    }
 }
 
 @media (max-width: 860px) {
@@ -1257,3 +1198,100 @@ img {
 .accordion-content a:hover {
     text-decoration-color: var(--info);
 }
+</style>
+</head>
+<body style="padding: 24px;">
+    <div class="page-noise" aria-hidden="true"></div>
+    <div class="app-shell">
+        <header class="topbar">
+            <div class="brand-block">
+                <div class="brand-mark">EPS</div>
+                <div>
+                    <p class="eyebrow">PCDF . MVP operacional</p>
+                    
+                        <span class="brand">Assistente de Apreensao</span>
+                    
+                    <p class="brand-subtitle">
+                        Inventario operacional com captura de evidencia, revisao humana e geracao de PDF.
+                    </p>
+                </div>
+            </div>
+            <div class="topbar-meta">
+                
+                    <span class="status-chip">Web mobile-first</span>
+                    <span class="status-chip status-chip-quiet">Acesso protegido</span>
+                
+            </div>
+            <nav class="topnav">
+                
+                    <a href="/entrar/">Entrar</a>
+                    <a href="/admin/" class="admin-link">Admin</a>
+                
+            </nav>
+        </header>
+
+        <main class="page-content">
+            
+
+            
+<section class="auth-shell">
+    <article class="auth-panel">
+        <div class="panel-heading">
+            <div>
+                <p class="eyebrow">Acesso ao sistema</p>
+                <h1>Entrar no Assistente de Apreensao</h1>
+                <p class="lead">
+                    Use seu usuario e senha para acessar operacoes, categorias, itens e o fluxo de IA.
+                </p>
+            </div>
+        </div>
+
+        <form method="post" class="auth-form">
+            <input type="hidden" name="csrfmiddlewaretoken" value="wFMYHKar8AXIyv1o6zCVAXKGPGug5O68ZzShls3T1e5Ttnr2hPysvke05gaueVWa">
+            
+
+            
+                <div class="form-field">
+                    <label for="id_username">Usuario</label>
+                    <input type="text" name="username" autofocus autocomplete="username" placeholder="Digite seu usuario" maxlength="150" required id="id_username">
+                    
+                </div>
+            
+                <div class="form-field">
+                    <label for="id_password">Senha</label>
+                    <input type="password" name="password" autocomplete="current-password" placeholder="Digite sua senha" required id="id_password">
+                    
+                </div>
+            
+
+            
+
+            <div class="form-actions">
+                <button class="button button-primary" type="submit">Entrar</button>
+            </div>
+        </form>
+    </article>
+
+    <aside class="side-stack">
+        <article class="panel panel-highlight">
+            <div class="panel-heading">
+                <div>
+                    <p class="eyebrow">Como acessar</p>
+                    <h2>Primeiro acesso do time</h2>
+                </div>
+            </div>
+            <ul class="ai-list">
+                <li>Crie um usuario pelo Django Admin ou via comando `createsuperuser`.</li>
+                <li>Use a mesma conta para entrar no sistema e, se quiser, acessar o admin.</li>
+                <li>Depois do login, todas as telas do MVP ficam protegidas.</li>
+            </ul>
+        </article>
+    </aside>
+</section>
+
+        </main>
+    </div>
+
+    
+</body>
+</html>

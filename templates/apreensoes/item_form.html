@@ -6,57 +6,180 @@
 <section class="panel" style="margin-bottom: 24px;">
     <div class="panel-heading">
         <div>
-            <h2>{% if mode == "update" %}Editar Item Apreendido{% else %}Registrar Item Apreendido{% endif %}</h2>
-            <p>Preencha as informações do item recolhido na operação <strong>{{ operation.codigo }}</strong>.</p>
+            <p class="eyebrow">Captura rapida no local</p>
+            <h2>{% if mode == "update" %}Revisar item apreendido{% else %}Registrar item apreendido{% endif %}</h2>
+            <p>
+                Na operacao <strong>{{ operation.codigo }}</strong>, a foto pode entrar primeiro.
+                Depois do salvamento, o sistema tenta preencher titulo, descricao e campos visuais automaticamente.
+            </p>
         </div>
     </div>
 </section>
 
 {% with selected_category=form.selected_category %}
-<section class="panel">
+<section class="panel panel-highlight">
     <div class="panel-heading">
-            <div>
-                <h1 style="font-size: 2rem; margin-bottom: 8px;">Dados do item</h1>
-                <p>Estruture o registro em blocos curtos para funcionar bem em campo, no celular.</p>
-            </div>
+        <div>
+            <h1 style="font-size: 2rem; margin-bottom: 8px;">Fluxo de campo</h1>
+            <p>Escolha a categoria, envie a foto e salve. O resto pode ser revisado na etapa seguinte.</p>
         </div>
+    </div>
 
-        {% if form.non_field_errors %}
-            <div class="flash flash-error">
-                {% for error in form.non_field_errors %}
-                    {{ error }}
-                {% endfor %}
-            </div>
-        {% endif %}
+    {% if not ai_ready %}
+        <div class="note-block note-block-strong" style="margin-bottom: 18px;">
+            <strong>Autopreenchimento indisponivel neste ambiente</strong>
+            <p>
+                A tela esta pronta para capturar foto e revisar sugestoes, mas a Gemini API nao esta configurada
+                no servidor atual. Sem a chave, o sistema salva a imagem e o registro, mas nao consegue preencher
+                automaticamente os campos a partir da foto.
+            </p>
+        </div>
+    {% endif %}
 
-        <form method="post" enctype="multipart/form-data" id="item-form">
-            {% csrf_token %}
+    {% if form.non_field_errors %}
+        <div class="flash flash-error">
+            {% for error in form.non_field_errors %}
+                {{ error }}
+            {% endfor %}
+        </div>
+    {% endif %}
 
-            <section class="form-section">
+    <form method="post" enctype="multipart/form-data" id="item-form">
+        {% csrf_token %}
+
+        <section class="quick-capture-shell">
+            <div class="quick-capture-copy">
                 <div class="form-section-title">
                     <div class="section-divider">
                         <span class="section-index">01</span>
                         <div>
-                            <h3 style="margin-bottom: 4px; font-size: 1.1rem;">Dados base do registro</h3>
-                            <p>Categoria, identificacao do item, descricao essencial e anexo da evidencia.</p>
+                            <h3 style="margin-bottom: 4px; font-size: 1.1rem;">Foto e contexto imediato</h3>
+                            <p>Esses sao os dados mais importantes para o policial conseguir registrar rapido no local.</p>
                         </div>
                     </div>
                 </div>
+
                 <div class="form-grid">
-                    {% for field in form %}
-                        {% if field.name|slice:":6" != 'campo_' %}
-                            <div class="form-field {% if field.name == 'descricao' or field.name == 'evidence_image' %}form-field-full{% endif %}">
-                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                                {{ field }}
-                                {% if field.help_text %}
-                                    <small>{{ field.help_text }}</small>
-                                {% endif %}
-                                {% for error in field.errors %}
-                                    <small class="error-text">{{ error }}</small>
-                                {% endfor %}
-                            </div>
+                    <div class="form-field">
+                        <label for="{{ form.category.id_for_label }}">{{ form.category.label }}</label>
+                        {{ form.category }}
+                        {% if form.category.help_text %}
+                            <small>{{ form.category.help_text }}</small>
                         {% endif %}
-                    {% endfor %}
+                        {% for error in form.category.errors %}
+                            <small class="error-text">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.local_encontrado.id_for_label }}">{{ form.local_encontrado.label }}</label>
+                        {{ form.local_encontrado }}
+                        {% if form.local_encontrado.help_text %}
+                            <small>{{ form.local_encontrado.help_text }}</small>
+                        {% endif %}
+                        {% for error in form.local_encontrado.errors %}
+                            <small class="error-text">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-field form-field-full">
+                        <label for="{{ form.evidence_image.id_for_label }}">{{ form.evidence_image.label }}</label>
+                        {{ form.evidence_image }}
+                        <small>Use camera ou galeria. Com imagem enviada, a IA tenta sugerir o preenchimento automaticamente.</small>
+                        {% for error in form.evidence_image.errors %}
+                            <small class="error-text">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-field form-field-full">
+                        <label for="{{ form.estado.id_for_label }}">{{ form.estado.label }}</label>
+                        {{ form.estado }}
+                        {% if form.estado.help_text %}
+                            <small>{{ form.estado.help_text }}</small>
+                        {% endif %}
+                        {% for error in form.estado.errors %}
+                            <small class="error-text">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <aside class="quick-capture-aside">
+                <div class="note-block">
+                    <strong>Como usar em campo</strong>
+                    <p>1. Aponte a categoria.</p>
+                    <p>2. Tire ou envie a foto.</p>
+                    <p>3. Salve sem perder tempo com descricao manual.</p>
+                    <p>4. Revise o que a IA sugeriu na tela seguinte.</p>
+                </div>
+
+                {% if not selected_category %}
+                    <div class="mini-note">
+                        Escolha a categoria para o sistema carregar os campos especificos quando precisar de revisao manual.
+                    </div>
+                {% elif selected_category.slug == "armas" %}
+                    <div class="mini-note">
+                        Para armas, o ideal e mostrar o perfil do objeto, marca, modelo, acabamento e qualquer numero visivel.
+                    </div>
+                {% elif selected_category.slug == "drogas" %}
+                    <div class="mini-note">
+                        Para drogas, tente enquadrar porcoes, embalagens, rotulos e quantidades aparentes na mesma foto.
+                    </div>
+                {% elif selected_category.slug == "municoes" %}
+                    <div class="mini-note">
+                        Para municoes, procure deixar a quantidade aparente e o agrupamento bem visiveis na imagem.
+                    </div>
+                {% else %}
+                    <div class="mini-note">
+                        Se a categoria ainda estiver incerta, envie a melhor foto possivel e revise depois.
+                    </div>
+                {% endif %}
+            </aside>
+        </section>
+
+        <details class="review-shell" {% if mode == "update" or form.errors %}open{% endif %}>
+            <summary>Refinar manualmente agora</summary>
+
+            <section class="form-section">
+                <div class="form-section-title">
+                    <div class="section-divider">
+                        <span class="section-index">02</span>
+                        <div>
+                            <h3 style="margin-bottom: 4px; font-size: 1.1rem;">Dados gerais do registro</h3>
+                            <p>Use este bloco quando quiser complementar o cadastro antes ou depois da sugestao automatica.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="{{ form.titulo.id_for_label }}">{{ form.titulo.label }}</label>
+                        {{ form.titulo }}
+                        <small>Se ficar vazio, o sistema cria um titulo provisiorio e tenta melhorar com a imagem.</small>
+                        {% for error in form.titulo.errors %}
+                            <small class="error-text">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-field">
+                        <label for="{{ form.quantidade.id_for_label }}">{{ form.quantidade.label }}</label>
+                        {{ form.quantidade }}
+                        <small>Se nao informar, o sistema usa 1 como padrao inicial.</small>
+                        {% for error in form.quantidade.errors %}
+                            <small class="error-text">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-field form-field-full">
+                        <label for="{{ form.descricao.id_for_label }}">{{ form.descricao.label }}</label>
+                        {{ form.descricao }}
+                        {% if form.descricao.help_text %}
+                            <small>{{ form.descricao.help_text }}</small>
+                        {% endif %}
+                        {% for error in form.descricao.errors %}
+                            <small class="error-text">{{ error }}</small>
+                        {% endfor %}
+                    </div>
                 </div>
             </section>
 
@@ -64,17 +187,18 @@
                 <section class="form-section">
                     <div class="form-section-title">
                         <div class="section-divider">
-                            <span class="section-index">02</span>
+                            <span class="section-index">03</span>
                             <div>
-                                <h3 style="margin-bottom: 4px; font-size: 1.1rem;">Campos da categoria {{ selected_category.nome }}</h3>
-                                <p>O formulario se adapta ao tipo de item escolhido para reduzir campos desnecessarios.</p>
+                                <h3 style="margin-bottom: 4px; font-size: 1.1rem;">Campos especificos de {{ selected_category.nome }}</h3>
+                                <p>Esses campos podem ser preenchidos manualmente agora ou apos a sugestao da IA.</p>
                             </div>
                         </div>
                     </div>
+
                     <div class="form-grid">
                         {% for field in form %}
                             {% if field.name|slice:":6" == 'campo_' %}
-                                <div class="form-field form-field-full">
+                                <div class="form-field">
                                     <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                                     {{ field }}
                                     {% if field.help_text %}
@@ -89,46 +213,15 @@
                     </div>
                 </section>
             {% endif %}
+        </details>
 
-            {% if not selected_category %}
-                <div class="note-block">
-                    <strong>Proximo passo</strong>
-                    <p>Escolha a categoria acima para que o formulario carregue os campos dinamicos do item.</p>
-                </div>
-            {% elif selected_category.slug == "armas" %}
-                <div class="note-block">
-                    <strong>Teste de imagem para armas</strong>
-                    <p>
-                        Priorize fotos onde aparecam tipo aparente, acabamento, marca, modelo ou numero de serie.
-                        A IA nao deve inventar calibre nem serial se isso nao estiver realmente visivel.
-                    </p>
-                </div>
-            {% elif selected_category.slug == "drogas" %}
-                <div class="note-block">
-                    <strong>Teste de imagem para drogas</strong>
-                    <p>
-                        Priorize fotos com boa visibilidade da embalagem, quantidade de porcoes, cor e rotulos.
-                        A IA deve sugerir apenas a apresentacao aparente, sem afirmar a substancia com certeza.
-                    </p>
-                </div>
-            {% elif selected_category.slug == "municoes" %}
-                <div class="note-block">
-                    <strong>Teste de imagem para municoes</strong>
-                    <p>
-                        Priorize fotos onde a quantidade esteja clara e onde calibre, marca ou acondicionamento
-                        possam ser vistos com seguranca. A IA deve separar municoes de armas e drogas quando a cena vier mista.
-                    </p>
-                </div>
-            {% endif %}
-
-            <div class="form-actions">
-                <a class="button button-ghost" href="{% url 'apreensoes:operation_detail' operation.pk %}">Voltar</a>
-                <button class="button button-primary" type="submit">
-                    {% if mode == "update" %}Salvar alteracoes{% else %}Registrar item{% endif %}
-                </button>
-            </div>
-        </form>
-
+        <div class="form-actions">
+            <a class="button button-ghost" href="{% url 'apreensoes:operation_detail' operation.pk %}">Voltar</a>
+            <button class="button button-primary" type="submit">
+                {% if mode == "update" %}Salvar revisao{% else %}Salvar e deixar a IA preencher{% endif %}
+            </button>
+        </div>
+    </form>
 </section>
 {% endwith %}
 
@@ -136,19 +229,19 @@
     <section class="panel panel-highlight" style="margin-top: 24px;">
         <div class="panel-heading" style="align-items: center;">
             <div>
-                <h2>🪄 Análise da Imagem com IA</h2>
-                <p>O assistente virtual ajuda a preencher dados a partir da foto. Verifique os dados abaixo antes de aplicar o preenchimento.</p>
+                <h2>Analise da imagem com IA</h2>
+                <p>O policial confere aqui o que a foto sustentou e decide o que entra no registro final.</p>
             </div>
             {% if item.evidence_image %}
                 <div class="hero-actions">
                     <form method="post" action="{% url 'apreensoes:item_analyze_image' item.pk %}">
                         {% csrf_token %}
-                        <button class="button button-primary" type="submit" style="background: linear-gradient(135deg, #15645d 0%, #0d423e 100%);">Analisar Novamente</button>
+                        <button class="button button-primary" type="submit" style="background: linear-gradient(135deg, #15645d 0%, #0d423e 100%);">Analisar novamente</button>
                     </form>
                     {% if item.has_ai_analysis %}
                         <form method="post" action="{% url 'apreensoes:item_apply_ai' item.pk %}">
                             {% csrf_token %}
-                            <button class="button button-secondary" type="submit">Preencher Formulário Automaticamente</button>
+                            <button class="button button-secondary" type="submit">Aplicar preenchimento automatico</button>
                         </form>
                     {% endif %}
                 </div>
@@ -167,7 +260,7 @@
             <div class="ai-stack">
                 {% if item.has_ai_analysis %}
                     <div class="ai-summary-card">
-                        <p class="muted-kicker">Ultima analise &middot; {{ item.ai_analysis_provider|upper }} {{ item.ai_analysis_model }}</p>
+                        <p class="muted-kicker">Ultima analise . {{ item.ai_analysis_provider|upper }} {{ item.ai_analysis_model }}</p>
                         {% if item.ai_last_analyzed_at %}
                             <p>{{ item.ai_last_analyzed_at|date:"d/m/Y H:i" }}</p>
                         {% endif %}
@@ -284,8 +377,7 @@
                     {% endif %}
                 {% else %}
                     <div class="mini-note">
-                        Ainda nao existe resultado de IA para este item. Salve a imagem e rode a
-                        analise para gerar o primeiro preenchimento assistido.
+                        Ainda nao existe resultado de IA para este item. Salve a imagem e rode a analise para gerar o primeiro preenchimento assistido.
                     </div>
                 {% endif %}
             </div>
