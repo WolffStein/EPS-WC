@@ -21,6 +21,7 @@ from .forms import (
     CategoryFieldForm,
     EvidenceCategoryForm,
     OperationForm,
+    OperationWitnessFormSet,
     SeizedItemForm,
     SignInForm,
     TeamMemberForm,
@@ -139,17 +140,21 @@ def dashboard(request: HttpRequest) -> HttpResponse:
 def operation_create(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         form = OperationForm(request.POST)
-        if form.is_valid():
+        witness_formset = OperationWitnessFormSet(request.POST)
+        if form.is_valid() and witness_formset.is_valid():
             operation = form.save()
+            witness_formset.instance = operation
+            witness_formset.save()
             messages.success(request, "Operacao criada com sucesso.")
             return redirect("apreensoes:operation_detail", pk=operation.pk)
     else:
         form = OperationForm(initial={"data_operacao": timezone.localdate()})
+        witness_formset = OperationWitnessFormSet()
 
     return render(
         request,
         "apreensoes/operation_form.html",
-        {"form": form, "page_title": "Nova operacao"},
+        {"form": form, "witness_formset": witness_formset, "page_title": "Nova operacao"},
     )
 
 
@@ -163,17 +168,20 @@ def operation_update(request: HttpRequest, pk: int) -> HttpResponse:
 
     if request.method == "POST":
         form = OperationForm(request.POST, instance=operation)
-        if form.is_valid():
+        witness_formset = OperationWitnessFormSet(request.POST, instance=operation)
+        if form.is_valid() and witness_formset.is_valid():
             form.save()
+            witness_formset.save()
             messages.success(request, "Operacao atualizada.")
             return redirect("apreensoes:operation_detail", pk=operation.pk)
     else:
         form = OperationForm(instance=operation)
+        witness_formset = OperationWitnessFormSet(instance=operation)
 
     return render(
         request,
         "apreensoes/operation_form.html",
-        {"form": form, "operation": operation, "page_title": "Editar operacao"},
+        {"form": form, "witness_formset": witness_formset, "operation": operation, "page_title": "Editar operacao"},
     )
 
 
@@ -182,6 +190,7 @@ def operation_detail(request: HttpRequest, pk: int) -> HttpResponse:
     operation = get_object_or_404(
         Operation.objects.prefetch_related(
             "team_members",
+            "witnesses",
             "items__category__field_definitions",
         ),
         pk=pk,
@@ -523,6 +532,7 @@ def operation_pdf(request: HttpRequest, pk: int) -> HttpResponse:
     operation = get_object_or_404(
         Operation.objects.prefetch_related(
             "team_members",
+            "witnesses",
             "items__category__field_definitions",
         ),
         pk=pk,

@@ -15,7 +15,7 @@
     <form method="post" class="form-grid">
         {% csrf_token %}
         {% for field in form %}
-            <div class="form-field {% if field.name == 'observacoes' %}form-field-full{% endif %}">
+            <div class="form-field {% if 'obs' in field.name %}form-field-full{% endif %}">
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                 {{ field }}
                 {% if field.help_text %}
@@ -26,6 +26,27 @@
                 {% endfor %}
             </div>
         {% endfor %}
+
+        {% if witness_formset %}
+        <div class="form-field-full" style="margin-top: 2rem;">
+            <h2>Testemunhas (Opcional)</h2>
+            <p>Cadastre testemunhas gerais ou testemunha vizinha em caso de morador ausente.</p>
+            {{ witness_formset.management_form }}
+            {% for wform in witness_formset %}
+                <div class="witness-form-row" style="border: 1px solid var(--gray-300); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    {% for field in wform %}
+                        <div class="form-field {% if 'obs' in field.name %}form-field-full{% endif %}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% for error in field.errors %}
+                                <small class="error-text">{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         <div class="form-actions">
             <a class="button button-ghost" href="{% url 'apreensoes:dashboard' %}">Cancelar</a>

@@ -49,12 +49,28 @@ class Operation(models.Model):
     suspeito_nome = models.CharField("suspeito / alvo", max_length=120)
     suspeito_documento = models.CharField("documento do suspeito", max_length=40, blank=True)
     suspeito_endereco = models.CharField("endereco do suspeito", max_length=255, blank=True)
+    
+    # Dados Processuais
+    processo_numero = models.CharField("numero do processo", max_length=60, blank=True)
+    protocolo_numero = models.CharField("numero do protocolo", max_length=60, blank=True)
+    vara_criminal = models.CharField("vara criminal / juizo", max_length=120, blank=True)
+
+    # Circunstancias da Diligencia
+    houve_arrombamento_desobediencia = models.BooleanField("arrombamento por desobediencia", default=False)
+    obs_arrombamento_desobediencia = models.TextField("observacoes (desobediencia)", blank=True)
+    
+    houve_emprego_forca = models.BooleanField("emprego de forca (recalcitrancia)", default=False)
+    obs_emprego_forca = models.TextField("observacoes (recalcitrancia)", blank=True)
+    
+    morador_ausente_arrombamento = models.BooleanField("morador ausente e arrombamento", default=False)
+    obs_morador_ausente = models.TextField("observacoes (morador ausente)", blank=True)
+
     status = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.PLANNED,
     )
-    observacoes = models.TextField(blank=True)
+    observacoes_complementares = models.TextField("observacoes complementares", blank=True)
     encerrada_em = models.DateTimeField(blank=True, null=True)
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)
@@ -106,6 +122,39 @@ class TeamMember(models.Model):
 
     def __str__(self) -> str:
         return f"{self.nome} ({self.cargo})"
+
+
+class OperationWitness(models.Model):
+    class WitnessType(models.TextChoices):
+        GERAL = "geral", "Testemunha Geral"
+        VIZINHO = "vizinho", "Testemunha/Vizinho (Morador Ausente)"
+
+    operation = models.ForeignKey(
+        Operation,
+        on_delete=models.CASCADE,
+        related_name="witnesses",
+    )
+    nome = models.CharField(max_length=120)
+    cpf = models.CharField("CPF", max_length=20, blank=True)
+    rg = models.CharField("RG", max_length=20, blank=True)
+    filiacao = models.CharField("filiacao", max_length=200, blank=True)
+    telefone = models.CharField(max_length=60, blank=True)
+    endereco = models.CharField(max_length=255, blank=True)
+    cidade_uf = models.CharField("cidade / UF", max_length=120, blank=True)
+    tipo = models.CharField(
+        max_length=20,
+        choices=WitnessType.choices,
+        default=WitnessType.GERAL,
+    )
+    observacoes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ("nome",)
+        verbose_name = "testemunha"
+        verbose_name_plural = "testemunhas"
+
+    def __str__(self) -> str:
+        return f"{self.nome} ({self.get_tipo_display()})"
 
 
 class EvidenceCategory(models.Model):

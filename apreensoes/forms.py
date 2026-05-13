@@ -6,7 +6,7 @@ from decimal import Decimal
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 
-from .models import CategoryField, EvidenceCategory, Operation, SeizedItem, TeamMember
+from .models import CategoryField, EvidenceCategory, Operation, OperationWitness, SeizedItem, TeamMember
 
 
 class DateInput(forms.DateInput):
@@ -55,12 +55,24 @@ class OperationForm(forms.ModelForm):
             "suspeito_nome",
             "suspeito_documento",
             "suspeito_endereco",
-            "observacoes",
+            "processo_numero",
+            "protocolo_numero",
+            "vara_criminal",
+            "houve_arrombamento_desobediencia",
+            "obs_arrombamento_desobediencia",
+            "houve_emprego_forca",
+            "obs_emprego_forca",
+            "morador_ausente_arrombamento",
+            "obs_morador_ausente",
+            "observacoes_complementares",
         ]
         widgets = {
             "data_operacao": DateInput(),
             "horario_previsto": TimeInput(),
-            "observacoes": forms.Textarea(attrs={"rows": 4}),
+            "obs_arrombamento_desobediencia": forms.Textarea(attrs={"rows": 2}),
+            "obs_emprego_forca": forms.Textarea(attrs={"rows": 2}),
+            "obs_morador_ausente": forms.Textarea(attrs={"rows": 2}),
+            "observacoes_complementares": forms.Textarea(attrs={"rows": 4}),
         }
 
 
@@ -71,6 +83,23 @@ class TeamMemberForm(forms.ModelForm):
         widgets = {
             "observacoes": forms.Textarea(attrs={"rows": 3}),
         }
+
+
+class OperationWitnessForm(forms.ModelForm):
+    class Meta:
+        model = OperationWitness
+        fields = ["nome", "cpf", "rg", "filiacao", "telefone", "endereco", "cidade_uf", "tipo", "observacoes"]
+        widgets = {
+            "observacoes": forms.Textarea(attrs={"rows": 2}),
+        }
+
+OperationWitnessFormSet = forms.inlineformset_factory(
+    Operation,
+    OperationWitness,
+    form=OperationWitnessForm,
+    extra=1,
+    can_delete=True,
+)
 
 
 class EvidenceCategoryForm(forms.ModelForm):

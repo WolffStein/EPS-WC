@@ -30,6 +30,14 @@
             <dd>{{ operation.suspeito_nome }}</dd>
         </div>
         <div>
+            <dt>Processo</dt>
+            <dd>{{ operation.processo_numero|default:"-" }}</dd>
+        </div>
+        <div>
+            <dt>Vara Criminal</dt>
+            <dd>{{ operation.vara_criminal|default:"-" }}</dd>
+        </div>
+        <div>
             <dt>Itens registrados</dt>
             <dd>{{ operation.total_itens }}</dd>
         </div>
@@ -136,6 +144,31 @@
         </div>
     {% else %}
         <div class="empty-inline">Nenhum integrante cadastrado ainda.</div>
+    {% endif %}
+</section>
+
+<section class="panel">
+    <div class="panel-heading" style="align-items: center;">
+        <div>
+            <h2>Testemunhas</h2>
+            <p>Quem presenciou a operacao (morador ausente ou geral)?</p>
+        </div>
+    </div>
+
+    {% if operation.witnesses.all %}
+        <div class="list-stack">
+            {% for witness in operation.witnesses.all %}
+                <div class="list-card">
+                    <div>
+                        <strong>{{ witness.nome }}</strong>
+                        <p>{{ witness.get_tipo_display }} . CPF: {{ witness.cpf|default:"-" }}</p>
+                        <p>Telefone: {{ witness.telefone|default:"-" }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-inline">Nenhuma testemunha cadastrada. Adicione ao editar a operacao.</div>
     {% endif %}
 </section>
 
