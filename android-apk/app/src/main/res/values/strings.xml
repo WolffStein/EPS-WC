@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Assistente de Apreensao</string>
+    <string name="server_config_eyebrow">Configurar backend</string>
+    <string name="server_config_title">APK Android do MVP</string>
+    <string name="server_config_description">Informe a URL do servidor Django que vai atender o app. Pode ser um IP local para teste em rede ou um dominio publicado.</string>
+    <string name="server_url_label">URL do backend</string>
+    <string name="server_url_hint">Ex.: http://192.168.1.11:8000/</string>
+    <string name="save_server_button">Salvar e abrir sistema</string>
+    <string name="retry_button">Tentar abrir novamente</string>
+    <string name="change_server_button">Servidor</string>
+    <string name="server_config_help">Para testar com o computador na mesma rede, suba o Docker e use a URL com o IP da maquina. Ex.: http://192.168.1.11:8000/</string>
+    <string name="server_saved_message">Servidor salvo. Abrindo o sistema.</string>
+    <string name="invalid_server_url">Informe uma URL valida para o backend.</string>
+    <string name="server_connection_failed">Nao foi possivel acessar %1$s. Revise a URL, a rede e o servidor Django.</string>
+    <string name="file_chooser_title">Enviar evidencia</string>
+    <string name="file_chooser_unavailable">Nao foi possivel abrir a camera ou o seletor de arquivos neste aparelho.</string>
+</resources>

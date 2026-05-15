@@ -23,6 +23,7 @@ MVP mobile-first para apoio a operacoes de apreensao da PCDF.
 - persistencia em banco SQLite ou PostgreSQL
 - encerramento da operacao com geracao de PDF
 - interface web responsiva pensada para uso em celular
+- base Android em `android-apk/` para empacotamento em APK via WebView
 - area administrativa do Django em `/admin/`
 - ambiente Docker com PostgreSQL e pgAdmin para inspecao do modelo relacional
 
@@ -42,6 +43,7 @@ projeto, consulte:
 
 - [docs/RASTREABILIDADE_TECNICA_MVP.md](docs/RASTREABILIDADE_TECNICA_MVP.md)
 - [docs/LEVANTAMENTO_REQUISITOS_MVP.md](docs/LEVANTAMENTO_REQUISITOS_MVP.md)
+- [docs/APK_ANDROID.md](docs/APK_ANDROID.md)
 
 ## Como rodar localmente
 
