@@ -130,11 +130,14 @@ def build_operation_pdf(operation: Operation) -> bytes:
     story = []
 
     # 1. Header with Logo
-    logo_path = os.path.join(settings.BASE_DIR, "static", "images", "pcdf_logo.png")
-    if os.path.exists(logo_path):
-        img = Image(logo_path, width=3*cm, height=3*cm)
-        img.hAlign = 'CENTER'
-        story.append(img)
+    # Tenta JPG primeiro (logo enviada pelo usuário), depois PNG como fallback
+    for logo_name in ("pcdf_logo.jpg", "pcdf_logo.png"):
+        logo_path = os.path.join(settings.BASE_DIR, "static", "images", logo_name)
+        if os.path.exists(logo_path):
+            img = Image(logo_path, width=3*cm, height=3*cm)
+            img.hAlign = 'CENTER'
+            story.append(img)
+            break
     
     story.append(Spacer(1, 0.5 * cm))
     story.append(Paragraph("POLÍCIA CIVIL DO DISTRITO FEDERAL", styles["Header1"]))
@@ -147,7 +150,7 @@ def build_operation_pdf(operation: Operation) -> bytes:
     process_data = [
         [
             Paragraph(f"<b>Processo nº:</b> {operation.processo_numero or '-'}", styles["TableCell"]),
-            Paragraph(f"<b>Protocolo:</b> {operation.protocolo or '-'}", styles["TableCell"]),
+            Paragraph(f"<b>Protocolo:</b> {operation.protocolo_numero or '-'}", styles["TableCell"]),
             Paragraph(f"<b>Vara:</b> {operation.vara_criminal or '-'}", styles["TableCell"])
         ]
     ]
@@ -186,9 +189,9 @@ def build_operation_pdf(operation: Operation) -> bytes:
 
     cb_data = [
         [
-            Paragraph(f"{checkbox_str(operation.houve_arrombamento)} Com Arrombamento<br/>{checkbox_str(not operation.houve_arrombamento)} Sem Arrombamento", styles["Checkbox"]),
-            Paragraph(f"{checkbox_str(operation.houve_recalcitrancia)} Com recalcitrância<br/>{checkbox_str(not operation.houve_recalcitrancia)} Sem recalcitrância", styles["Checkbox"]),
-            Paragraph(f"{checkbox_str(operation.morador_ausente)} Sem a presença de morador<br/>{checkbox_str(not operation.morador_ausente)} Com a presença de morador", styles["Checkbox"]),
+            Paragraph(f"{checkbox_str(operation.houve_arrombamento_desobediencia)} Com Arrombamento<br/>{checkbox_str(not operation.houve_arrombamento_desobediencia)} Sem Arrombamento", styles["Checkbox"]),
+            Paragraph(f"{checkbox_str(operation.houve_emprego_forca)} Com recalcitrância<br/>{checkbox_str(not operation.houve_emprego_forca)} Sem recalcitrância", styles["Checkbox"]),
+            Paragraph(f"{checkbox_str(operation.morador_ausente_arrombamento)} Sem a presença de morador<br/>{checkbox_str(not operation.morador_ausente_arrombamento)} Com a presença de morador", styles["Checkbox"]),
         ]
     ]
     cb_table = Table(cb_data, colWidths=[5.6*cm, 5.6*cm, 5.8*cm])
@@ -230,62 +233,90 @@ def build_operation_pdf(operation: Operation) -> bytes:
     story.append(Paragraph("ITENS ARRECADADOS:", styles["BodyBold"]))
     story.append(Spacer(1, 0.2 * cm))
 
-    all_items = operation.items.select_related('category').prefetch_related('extra_field_items')
+    # Carrega todos os itens com suas categorias e campos extras já em memória
+    all_items = list(
+        operation.items
+        .select_related('category')
+        .prefetch_related('category__field_definitions')
+    )
+
     info_items = []
     other_items = []
 
     for item in all_items:
-        # PCDF standard dual table: Informatics vs Others
-        # If category name contains 'informática', 'celular', 'mídia', 'computador', etc.
         cat_name = item.category.nome.lower()
-        is_info = any(kw in cat_name for kw in ['informática', 'celular', 'mídia', 'computador', 'notebook', 'tablet', 'eletrônico'])
-        
+        is_info = any(kw in cat_name for kw in [
+            'informática', 'informatica', 'celular', 'mídia', 'midia',
+            'computador', 'notebook', 'tablet', 'eletrônico', 'eletronico'
+        ])
         if is_info:
             info_items.append(item)
         else:
             other_items.append(item)
 
+    def _get_item_desc(it) -> str:
+        """Monta a descrição completa de um item lendo campos extras do banco."""
+        desc_parts = []
+        # Título
+        desc_parts.append(f"<b>Título:</b> {escape(it.titulo)}")
+        # Quantidade
+        if it.quantidade and it.quantidade > 1:
+            desc_parts.append(f"<b>Quantidade:</b> {it.quantidade}")
+        # Descrição livre
+        if it.descricao:
+            desc_parts.append(f"<b>Descrição:</b> {escape(it.descricao)}")
+        # Estado
+        if it.estado:
+            desc_parts.append(f"<b>Estado:</b> {escape(it.estado)}")
+        # Local
+        if it.local_encontrado:
+            desc_parts.append(f"<b>Local encontrado:</b> {escape(it.local_encontrado)}")
+        # Campos extras definidos pela categoria (extra_data)
+        field_labels = {
+            fd.key: fd.label
+            for fd in it.category.field_definitions.all()
+        }
+        for key, value in (it.extra_data or {}).items():
+            if value in ("", None, []):
+                continue
+            rendered = "Sim" if value is True else "Não" if value is False else str(value)
+            label = field_labels.get(key, key.replace("_", " ").title())
+            desc_parts.append(f"<b>{escape(label)}:</b> {escape(rendered)}")
+        return "<br/>".join(desc_parts) if desc_parts else "-"
+
     def _build_item_table(title: str, items_list) -> None:
+        # Só exibe a tabela se houver itens
+        if not items_list:
+            return
+
         story.append(Paragraph(title, styles["TableHead"]))
-        
         t_data = [
-            [Paragraph("Item", styles["TableHead"]), Paragraph("Descrição", styles["TableHead"])]
+            [Paragraph("Nº", styles["TableHead"]), Paragraph("Descrição", styles["TableHead"])]
         ]
-        
-        if items_list:
-            for idx, it in enumerate(items_list, 1):
-                desc_parts = []
-                if it.descricao:
-                    desc_parts.append(it.descricao)
-                for field in it.extra_field_items:
-                    desc_parts.append(f"{field['label']}: {field['value']}")
-                if it.local_encontrado:
-                    desc_parts.append(f"Local Encontrado: {it.local_encontrado}")
-                    
-                desc_text = "<br/>".join(desc_parts) if desc_parts else "-"
-                
-                t_data.append([
-                    Paragraph(str(idx), styles["TableCell"]),
-                    Paragraph(desc_text, styles["TableCell"])
-                ])
-        else:
-             t_data.append([
-                 Paragraph("-", styles["TableCell"]),
-                 Paragraph("Nenhum item registrado nesta categoria.", styles["TableCell"])
-             ])
-             
+        for idx, it in enumerate(items_list, 1):
+            desc_text = _get_item_desc(it)
+            t_data.append([
+                Paragraph(str(idx), styles["TableCell"]),
+                Paragraph(desc_text, styles["TableCell"])
+            ])
+
         t_table = Table(t_data, colWidths=[2*cm, 15*cm])
         t_table.setStyle(TableStyle([
-            ('GRID', (0,0), (-1,-1), 0.5, colors.black),
-            ('VALIGN', (0,0), (-1,-1), 'TOP'),
-            ('BACKGROUND', (0,0), (-1,0), colors.lightgrey),
-            ('ALIGN', (0,0), (0,-1), 'CENTER'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+            ('ALIGN', (0, 0), (0, -1), 'CENTER'),
         ]))
         story.append(t_table)
         story.append(Spacer(1, 0.5 * cm))
 
     _build_item_table("MATERIAIS DE INFORMÁTICA, APARELHOS CELULARES E MÍDIAS", info_items)
     _build_item_table("OUTROS MATERIAIS, OBJETOS E DOCUMENTOS", other_items)
+
+    # Se não houver NENHUM item, exibe mensagem
+    if not all_items:
+        story.append(Paragraph("Nenhum item apreendido registrado.", styles["Body"]))
+        story.append(Spacer(1, 0.3 * cm))
 
     if operation.observacoes_complementares:
         story.append(Paragraph(f"<b>Observações Complementares:</b><br/>{operation.observacoes_complementares}", styles["Body"]))

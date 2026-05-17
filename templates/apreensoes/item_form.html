@@ -71,6 +71,7 @@
                         {% endfor %}
                     </div>
 
+                    {% if selected_category %}
                     <div class="form-field">
                         <label for="{{ form.local_encontrado.id_for_label }}">{{ form.local_encontrado.label }}</label>
                         {{ form.local_encontrado }}
@@ -101,6 +102,7 @@
                             <small class="error-text">{{ error }}</small>
                         {% endfor %}
                     </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -137,6 +139,7 @@
             </aside>
         </section>
 
+        {% if selected_category %}
         <details class="review-shell" {% if mode == "update" or form.errors %}open{% endif %}>
             <summary>Refinar manualmente agora</summary>
 
@@ -214,12 +217,15 @@
                 </section>
             {% endif %}
         </details>
+        {% endif %}
 
         <div class="form-actions">
             <a class="button button-ghost" href="{% url 'apreensoes:operation_detail' operation.pk %}">Voltar</a>
-            <button class="button button-primary" type="submit">
-                {% if mode == "update" %}Salvar revisao{% else %}Salvar e deixar a IA preencher{% endif %}
-            </button>
+            {% if selected_category %}
+                <button class="button button-primary" type="submit">
+                    {% if mode == "update" %}Salvar revisao{% else %}Salvar e deixar a IA preencher{% endif %}
+                </button>
+            {% endif %}
         </div>
     </form>
 </section>

@@ -12,8 +12,24 @@
         </div>
         <div class="action-row">
             <span class="pill pill-{{ operation.status }}">{{ operation.get_status_display }}</span>
-            <a class="button button-secondary" href="{% url 'apreensoes:operation_update' operation.pk %}">Editar operacao</a>
-            <a class="button button-primary" href="{% url 'apreensoes:operation_pdf' operation.pk %}">Gerar PDF</a>
+            {% if operation.status != "encerrada" %}
+                <a class="button button-secondary" href="{% url 'apreensoes:operation_update' operation.pk %}">Editar</a>
+            {% endif %}
+            
+            {% if operation.status == "planejada" %}
+                <form method="post" action="{% url 'apreensoes:operation_start' operation.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button class="button button-primary" type="submit">Iniciar Operacao</button>
+                </form>
+            {% elif operation.status == "em_andamento" %}
+                <a class="button button-secondary" href="{% url 'apreensoes:operation_pdf' operation.pk %}" target="_blank">Gerar PDF (Rascunho)</a>
+                <form method="post" action="{% url 'apreensoes:operation_close' operation.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button class="button button-primary" type="submit">Encerrar Operacao</button>
+                </form>
+            {% elif operation.status == "encerrada" %}
+                <a class="button button-primary" href="{% url 'apreensoes:operation_pdf' operation.pk %}?final=1" target="_blank">Baixar PDF Final</a>
+            {% endif %}
         </div>
     </div>
     <dl class="info-list compact">

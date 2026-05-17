@@ -540,9 +540,19 @@ def operation_pdf(request: HttpRequest, pk: int) -> HttpResponse:
     pdf_content = build_operation_pdf(operation)
 
     response = HttpResponse(pdf_content, content_type="application/pdf")
-    response["Content-Disposition"] = (
-        f'attachment; filename="auto-apreensao-{operation.codigo.lower()}.pdf"'
-    )
+    
+    is_final = request.GET.get('final') == '1' or operation.status == Operation.Status.CLOSED
+
+    if is_final:
+        date_str = operation.data_operacao.strftime("%Y%m%d") if operation.data_operacao else "sem_data"
+        import re
+        name_str = re.sub(r'[^A-Za-z0-9]', '_', str(operation.nome))
+        filename = f"{name_str}_{date_str}_final.pdf"
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    else:
+        filename = f"rascunho_{operation.codigo.lower()}.pdf"
+        response["Content-Disposition"] = f'inline; filename="{filename}"'
+
     return response
 
 

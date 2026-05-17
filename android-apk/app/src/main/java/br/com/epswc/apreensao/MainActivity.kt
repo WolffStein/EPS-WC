@@ -22,6 +22,9 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import br.com.epswc.apreensao.databinding.ActivityMainBinding
 import java.io.File
@@ -36,6 +39,12 @@ class MainActivity : AppCompatActivity() {
 
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     private var pendingCameraUri: Uri? = null
+    private var lastFileChooserParams: WebChromeClient.FileChooserParams? = null
+
+    private val requestCameraPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            launchFileChooser(lastFileChooserParams, isGranted)
+        }
 
     private val fileChooserLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -130,12 +139,40 @@ class MainActivity : AppCompatActivity() {
         CookieManager.getInstance().setAcceptCookie(true)
         CookieManager.getInstance().setAcceptThirdPartyCookies(binding.appWebView, true)
 
+        binding.appWebView.setDownloadListener { url, _, _, _, _ ->
+            try {
+                val i = Intent(Intent.ACTION_VIEW)
+                i.data = Uri.parse(url)
+                startActivity(i)
+            } catch (e: Exception) {
+                Toast.makeText(this@MainActivity, "Nenhum navegador encontrado para baixar o arquivo", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         binding.appWebView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(
                 view: WebView,
                 request: WebResourceRequest,
             ): Boolean {
                 val target = request.url.toString()
+                
+                // Envia qualquer link de PDF para o navegador externo (Chrome)
+                if (target.contains("/pdf/")) {
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, request.url)
+                        intent.setPackage("com.android.chrome")
+                        startActivity(intent)
+                        return true
+                    } catch (e: Exception) {
+                        try {
+                            startActivity(Intent(Intent.ACTION_VIEW, request.url))
+                            return true
+                        } catch (e2: Exception) {
+                            // fallback
+                        }
+                    }
+                }
+
                 if (target.startsWith("http://") || target.startsWith("https://")) {
                     return false
                 }
@@ -189,34 +226,47 @@ class MainActivity : AppCompatActivity() {
             ): Boolean {
                 this@MainActivity.filePathCallback?.onReceiveValue(null)
                 this@MainActivity.filePathCallback = filePathCallback
+                this@MainActivity.lastFileChooserParams = fileChooserParams
 
-                val pickerIntent = fileChooserParams?.createIntent() ?: Intent(Intent.ACTION_GET_CONTENT)
-                pickerIntent.addCategory(Intent.CATEGORY_OPENABLE)
-                pickerIntent.type = buildAcceptedMimeType(fileChooserParams)
-
-                val extraIntents = mutableListOf<Intent>()
-                createCameraIntent()?.let(extraIntents::add)
-
-                val chooserIntent = Intent(Intent.ACTION_CHOOSER).apply {
-                    putExtra(Intent.EXTRA_INTENT, pickerIntent)
-                    putExtra(Intent.EXTRA_TITLE, getString(R.string.file_chooser_title))
-                    putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents.toTypedArray())
+                val permission = Manifest.permission.CAMERA
+                if (ContextCompat.checkSelfPermission(this@MainActivity, permission) == PackageManager.PERMISSION_GRANTED) {
+                    launchFileChooser(fileChooserParams, true)
+                } else {
+                    requestCameraPermissionLauncher.launch(permission)
                 }
 
-                return try {
-                    fileChooserLauncher.launch(chooserIntent)
-                    true
-                } catch (_: ActivityNotFoundException) {
-                    this@MainActivity.filePathCallback = null
-                    pendingCameraUri = null
-                    Toast.makeText(
-                        this@MainActivity,
-                        getString(R.string.file_chooser_unavailable),
-                        Toast.LENGTH_LONG,
-                    ).show()
-                    false
-                }
+                return true
             }
+        }
+    }
+
+    private fun launchFileChooser(fileChooserParams: WebChromeClient.FileChooserParams?, hasCameraPermission: Boolean) {
+        val pickerIntent = fileChooserParams?.createIntent() ?: Intent(Intent.ACTION_GET_CONTENT)
+        pickerIntent.addCategory(Intent.CATEGORY_OPENABLE)
+        pickerIntent.type = buildAcceptedMimeType(fileChooserParams)
+
+        val extraIntents = mutableListOf<Intent>()
+        if (hasCameraPermission) {
+            createCameraIntent()?.let(extraIntents::add)
+        }
+
+        val chooserIntent = Intent(Intent.ACTION_CHOOSER).apply {
+            putExtra(Intent.EXTRA_INTENT, pickerIntent)
+            putExtra(Intent.EXTRA_TITLE, getString(R.string.file_chooser_title))
+            putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents.toTypedArray())
+        }
+
+        try {
+            fileChooserLauncher.launch(chooserIntent)
+        } catch (_: ActivityNotFoundException) {
+            this.filePathCallback?.onReceiveValue(null)
+            this.filePathCallback = null
+            pendingCameraUri = null
+            Toast.makeText(
+                this,
+                getString(R.string.file_chooser_unavailable),
+                Toast.LENGTH_LONG,
+            ).show()
         }
     }
 
